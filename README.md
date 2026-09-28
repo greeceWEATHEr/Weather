@@ -2108,6 +2108,10 @@ function svgWrap(content){
 /* =====================================
    WEATHER ICON
    Κάθε κατάσταση = ΕΝΑ ενιαίο εικονίδιο
+
+   ΣΗΜΑΝΤΙΚΟ:
+   Εικονίδιο υετού εμφανίζεται ΜΟΝΟ
+   όταν η πιθανότητα είναι >= 31%.
 ===================================== */
 
 function weatherIcon(
@@ -2133,6 +2137,21 @@ function weatherIcon(
 
     cloudCover =
         Number(cloudCover || 0);
+
+
+    /*
+       Η εμφάνιση εικονιδίου υετού
+       επιτρέπεται αυστηρά από 31% και πάνω.
+    */
+
+    const precipitationChance =
+        Math.round(
+            precipitationProbability
+        );
+
+
+    const precipitationAllowed =
+        precipitationChance >= 31;
 
 
     const rainCodes = [
@@ -2167,17 +2186,28 @@ function weatherIcon(
     ];
 
 
+    /*
+       ΚΡΙΣΙΜΟ:
+       Αν η πιθανότητα είναι <=30%,
+       ΟΛΑ τα precipitation weather codes
+       θεωρούνται μη-υετικά για το εικονίδιο.
+    */
+
     const hasPrecipitation =
 
-        snowfall > 0 ||
+        precipitationAllowed && (
 
-        rainCodes.includes(code) ||
+            snowfall > 0 ||
 
-        sleetCodes.includes(code) ||
+            rainCodes.includes(code) ||
 
-        snowCodes.includes(code) ||
+            sleetCodes.includes(code) ||
 
-        stormCodes.includes(code);
+            snowCodes.includes(code) ||
+
+            stormCodes.includes(code)
+
+        );
 
 
     const fullClouds =
@@ -2565,8 +2595,17 @@ function weatherIcon(
     }
 
 
+    /*
+       Από εδώ και κάτω τα precipitation
+       branches εκτελούνται ΜΟΝΟ όταν
+       precipitationAllowed === true,
+       επειδή hasPrecipitation είναι false
+       όταν η πιθανότητα είναι <=30%.
+    */
+
     if(
-        stormCodes.includes(code)
+        stormCodes.includes(code) &&
+        precipitationAllowed
     ){
 
         return svgWrap(`
@@ -2611,7 +2650,8 @@ function weatherIcon(
 
     if(
         sleetCodes.includes(code) &&
-        fullClouds
+        fullClouds &&
+        precipitationAllowed
     ){
 
         return svgWrap(`
@@ -2659,7 +2699,8 @@ function weatherIcon(
 
     if(
         snowCodes.includes(code) &&
-        fullClouds
+        fullClouds &&
+        precipitationAllowed
     ){
 
         return svgWrap(`
@@ -2719,7 +2760,8 @@ function weatherIcon(
 
     if(
         rainCodes.includes(code) &&
-        fullClouds
+        fullClouds &&
+        precipitationAllowed
     ){
 
         return svgWrap(`
@@ -2760,7 +2802,8 @@ function weatherIcon(
 
 
     if(
-        sleetCodes.includes(code)
+        sleetCodes.includes(code) &&
+        precipitationAllowed
     ){
 
         if(isDay){
@@ -2868,27 +2911,31 @@ function weatherIcon(
         snowfall > 0
     ){
 
-        if(isDay){
+        if(
+            precipitationAllowed
+        ){
 
-            return svgWrap(`
+            if(isDay){
 
-                <circle
-                    cx="22"
-                    cy="21"
-                    r="10"
-                    fill="#FFD34E"/>
+                return svgWrap(`
 
-                <path
-                    d="M18 41
-                   C11 41 10 31 18 28
-                   C20 21 30 19 36 25
-                   C45 23 52 30 49 38
-                   C54 40 52 47 45 47
-                   H18Z"
-                    fill="#8799AA"/>
+                    <circle
+                        cx="22"
+                        cy="21"
+                        r="10"
+                        fill="#FFD34E"/>
 
-                <path
-                    d="M18 48
+                    <path
+                        d="M18 41
+                       C11 41 10 31 18 28
+                       C20 21 30 19 36 25
+                       C45 23 52 30 49 38
+                       C54 40 52 47 45 47
+                       H18Z"
+                        fill="#8799AA"/>
+
+                    <path
+                        d="M18 48
                        L18 57
                        M13.5 52.5
                        L22.5 52.5
@@ -2896,12 +2943,12 @@ function weatherIcon(
                        L21.5 56
                        M21.5 49
                        L14.5 56"
-                    stroke="#FFFFFF"
-                    stroke-width="1.8"
-                    stroke-linecap="round"/>
+                        stroke="#FFFFFF"
+                        stroke-width="1.8"
+                        stroke-linecap="round"/>
 
-                <path
-                    d="M31 48
+                    <path
+                        d="M31 48
                        L31 58
                        M26 53
                        L36 53
@@ -2909,12 +2956,12 @@ function weatherIcon(
                        L34.5 56.5
                        M34.5 49.5
                        L27.5 56.5"
-                    stroke="#F4F8FC"
-                    stroke-width="1.8"
-                    stroke-linecap="round"/>
+                        stroke="#F4F8FC"
+                        stroke-width="1.8"
+                        stroke-linecap="round"/>
 
-                <path
-                    d="M44 49
+                    <path
+                        d="M44 49
                        L44 57
                        M40 53
                        L48 53
@@ -2922,6 +2969,67 @@ function weatherIcon(
                        L47 56
                        M47 50
                        L41 56"
+                        stroke="#FFFFFF"
+                        stroke-width="1.8"
+                        stroke-linecap="round"/>
+
+                `);
+
+            }
+
+
+            return svgWrap(`
+
+                <path
+                    d="M23 9
+                       A13 13 0 1 0 39 29
+                       A11 11 0 1 1 23 9Z"
+                    fill="#B8C3CE"/>
+
+                <path
+                    d="M18 42
+                       C11 42 10 32 18 29
+                       C20 22 30 20 36 26
+                       C45 24 52 31 49 39
+                       C54 41 52 48 45 48
+                       H18Z"
+                    fill="#718397"/>
+
+                <path
+                    d="M18 49
+                       L18 58
+                       M13.5 53.5
+                       L22.5 53.5
+                       M14.5 50
+                       L21.5 57
+                       M21.5 50
+                       L14.5 57"
+                    stroke="#FFFFFF"
+                    stroke-width="1.8"
+                    stroke-linecap="round"/>
+
+                <path
+                    d="M31 49
+                       L31 59
+                       M26 54
+                       L36 54
+                       M27.5 50.5
+                       L34.5 57.5
+                       M34.5 50.5
+                       L27.5 57.5"
+                    stroke="#F4F8FC"
+                    stroke-width="1.8"
+                    stroke-linecap="round"/>
+
+                <path
+                    d="M44 50
+                       L44 58
+                       M40 54
+                       L48 54
+                       M41 51
+                       L47 57
+                       M47 51
+                       L41 57"
                     stroke="#FFFFFF"
                     stroke-width="1.8"
                     stroke-linecap="round"/>
@@ -2930,62 +3038,132 @@ function weatherIcon(
 
         }
 
+        /*
+           <=30%:
+           Δεν εμφανίζουμε χιονόπτωση.
+           Χρησιμοποιούμε μη-υετικό εικονίδιο
+           ανάλογα με την ημέρα/νύχτα.
+        */
+
+        if(isDay){
+
+            if(cloudCover >= 70){
+
+                return svgWrap(`
+
+                    <path
+                        d="M13 42
+                           C7 42 7 32 15 29
+                           C17 21 27 19 33 25
+                           C42 23 50 30 47 38
+                           C53 40 51 47 44 47
+                           H13Z"
+                        fill="#77899B"/>
+
+                    <path
+                        d="M22 33
+                           C17 33 16 26 22 24
+                           C24 18 32 17 37 22
+                           C44 21 49 26 47 32
+                           H22Z"
+                        fill="#AAB7C3"/>
+
+                `);
+
+            }
+
+            if(cloudCover >= 35){
+
+                return svgWrap(`
+
+                    <circle
+                        cx="24"
+                        cy="23"
+                        r="12"
+                        fill="#FFD34E"/>
+
+                    <path
+                        d="M25 45
+                           C17 45 16 35 24 32
+                           C26 25 36 24 42 30
+                           C49 29 54 34 52 40
+                           C56 42 54 47 48 47
+                           H25Z"
+                        fill="#B7C3CF"/>
+
+                `);
+
+            }
+
+            return svgWrap(`
+
+                <circle
+                    cx="32"
+                    cy="32"
+                    r="17"
+                    fill="#FFD34E"/>
+
+                <circle
+                    cx="32"
+                    cy="32"
+                    r="12"
+                    fill="#FFE071"/>
+
+            `);
+
+        }
+
+
+        if(cloudCover >= 70){
+
+            return svgWrap(`
+
+                <path
+                    d="M13 42
+                       C7 42 7 32 15 29
+                       C17 21 27 19 33 25
+                       C42 23 50 30 47 38
+                       C53 40 51 47 44 47
+                       H13Z"
+                    fill="#77899B"/>
+
+                <path
+                    d="M22 33
+                       C17 33 16 26 22 24
+                       C24 18 32 17 37 22
+                       C44 21 49 26 47 32
+                       H22Z"
+                    fill="#AAB7C3"/>
+
+            `);
+
+        }
 
         return svgWrap(`
 
             <path
-                d="M23 9
-                   A13 13 0 1 0 39 29
-                   A11 11 0 1 1 23 9Z"
-                fill="#B8C3CE"/>
+                d="M25 9
+                   A18 18 0 1 0 47 36
+                   A15 15 0 1 1 25 9Z"
+                fill="#C4CED8"/>
 
-            <path
-                d="M18 42
-                   C11 42 10 32 18 29
-                   C20 22 30 20 36 26
-                   C45 24 52 31 49 39
-                   C54 41 52 48 45 48
-                   H18Z"
-                fill="#718397"/>
+            <circle
+                cx="21"
+                cy="20"
+                r="2"
+                fill="#EEF3F7"/>
 
-            <path
-                d="M18 49
-                   L18 58
-                   M13.5 53.5
-                   L22.5 53.5
-                   M14.5 50
-                   L21.5 57
-                   M21.5 50
-                   L14.5 57"
-                stroke="#FFFFFF"
-                stroke-width="1.8"
-                stroke-linecap="round"/>
+            <circle
+                cx="44"
+                cy="17"
+                r="1.7"
+                fill="#EEF3F7"/>
 
-            <path
-                d="M31 49
-                   L31 59
-                   M26 54
-                   L36 54
-                   M27.5 50.5
-                   L34.5 57.5
-                   M34.5 50.5
-                   L27.5 57.5"
-                stroke="#F4F8FC"
-                stroke-width="1.8"
-                stroke-linecap="round"/>
-
-            <path
-                d="M44 50
-                   L44 58
-                   M40 54
-                   L48 54
-                   M41 51
-                   L47 57
-                   M47 51
-                   L41 57"
-                stroke="#FFFFFF"
-                stroke-width="1.8"
-                stroke-linecap="round"/>
+            <circle
+                cx="48"
+                cy="28"
+                r="1.5"
+                fill="#EEF3F7"/>
 
         `);
 
@@ -2993,7 +3171,8 @@ function weatherIcon(
 
 
     if(
-        rainCodes.includes(code)
+        rainCodes.includes(code) &&
+        precipitationAllowed
     ){
 
         if(isDay){
@@ -3871,6 +4050,508 @@ function renderCurrent(){
 
 
 /* =====================================
+   ΗΜΕΡΗΣΙΟΣ ΚΥΡΙΑΡΧΟΣ ΚΑΙΡΟΣ
+   ΒΑΣΙΖΕΤΑΙ ΜΟΝΟ ΣΤΙΣ ΩΡΕΣ ΗΛΙΟΦΑΝΕΙΑΣ
+===================================== */
+
+function getDailyDaylightWeatherCode(dayIndex){
+
+    const daily =
+        weatherData.daily;
+
+    const hourly =
+        weatherData.hourly;
+
+    const date =
+        daily.time[dayIndex];
+
+
+    const daytimeRows = [];
+
+
+    for(
+        let i = 0;
+        i < hourly.time.length;
+        i++
+    ){
+
+        if(
+            hourly.time[i].substring(0,10) !== date
+        ){
+
+            continue;
+
+        }
+
+
+        /*
+           Χρησιμοποιούμε το is_day του Open-Meteo
+           ώστε οι νυχτερινές ώρες να μην επηρεάζουν
+           καθόλου το ημερήσιο εικονίδιο.
+        */
+
+        const isDay =
+            Number(hourly.is_day?.[i]) === 1;
+
+
+        if(isDay){
+
+            daytimeRows.push(i);
+
+        }
+
+    }
+
+
+    /*
+       Εφεδρικός τρόπος αν για οποιονδήποτε λόγο
+       δεν υπάρχει is_day:
+       κρατάμε περίπου 06:00–18:00.
+    */
+
+    if(!daytimeRows.length){
+
+        for(
+            let i = 0;
+            i < hourly.time.length;
+            i++
+        ){
+
+            if(
+                hourly.time[i].substring(0,10) !== date
+            ){
+
+                continue;
+
+            }
+
+
+            const hour =
+                Number(
+                    hourly.time[i].substring(11,13)
+                );
+
+
+            if(
+                hour >= 6 &&
+                hour <= 18
+            ){
+
+                daytimeRows.push(i);
+
+            }
+
+        }
+
+    }
+
+
+    if(!daytimeRows.length){
+
+        return Number(
+            daily.weather_code[dayIndex]
+        );
+
+    }
+
+
+    const rainCodes = [
+        51,53,55,
+        61,63,65,
+        80,81,82
+    ];
+
+    const sleetCodes = [
+        56,57,66,67
+    ];
+
+    const snowCodes = [
+        71,73,75,77,
+        85,86
+    ];
+
+    const stormCodes = [
+        95,96,99
+    ];
+
+
+    function weatherCategory(code){
+
+        code = Number(code);
+
+
+        if(stormCodes.includes(code))
+            return "storm";
+
+
+        if(sleetCodes.includes(code))
+            return "sleet";
+
+
+        if(snowCodes.includes(code))
+            return "snow";
+
+
+        if(rainCodes.includes(code))
+            return "rain";
+
+
+        if(code === 0)
+            return "clear";
+
+
+        if(code === 1)
+            return "mostlyClear";
+
+
+        if(code === 2)
+            return "partlyCloudy";
+
+
+        if(code === 3)
+            return "cloudy";
+
+
+        if([45,48].includes(code))
+            return "fog";
+
+
+        return "cloudy";
+
+    }
+
+
+    /*
+       Μετράμε πόσες ώρες της ημέρας κυριαρχεί
+       κάθε βασική κατάσταση.
+    */
+
+    const categoryCounts = {
+
+        storm:0,
+        sleet:0,
+        snow:0,
+        rain:0,
+        clear:0,
+        mostlyClear:0,
+        partlyCloudy:0,
+        cloudy:0,
+        fog:0
+
+    };
+
+
+    daytimeRows.forEach(i => {
+
+        const code =
+            Number(
+                hourly.weather_code[i]
+            );
+
+
+        const category =
+            weatherCategory(code);
+
+
+        categoryCounts[category]++;
+
+    });
+
+
+    /*
+       Βρίσκουμε την κατάσταση που εμφανίζεται
+       τις περισσότερες ώρες ηλιοφάνειας.
+    */
+
+    let dominantCategory =
+        "clear";
+
+    let dominantCount =
+        -1;
+
+
+    const categoryOrder = [
+
+        "storm",
+        "sleet",
+        "snow",
+        "rain",
+        "cloudy",
+        "fog",
+        "partlyCloudy",
+        "mostlyClear",
+        "clear"
+
+    ];
+
+
+    categoryOrder.forEach(category => {
+
+        if(
+            categoryCounts[category] >
+            dominantCount
+        ){
+
+            dominantCategory =
+                category;
+
+            dominantCount =
+                categoryCounts[category];
+
+        }
+
+    });
+
+
+    /*
+       Η πιθανότητα υετού της ημέρας παραμένει
+       το αυστηρό φίλτρο:
+       <=30% δεν επιτρέπεται precipitation icon.
+    */
+
+    const dailyRain =
+        Math.round(
+            Number(
+                daily.precipitation_probability_max[dayIndex]
+                || 0
+            )
+        );
+
+
+    const precipitationAllowed =
+        dailyRain >= 31;
+
+
+    /*
+       Αν ο κυρίαρχος daytime καιρός είναι υετός
+       αλλά η πιθανότητα είναι <=30%, ΔΕΝ δείχνουμε
+       βροχή/χιόνι/χιονόνερο/καταιγίδα.
+
+       Αντί γι' αυτό αποφασίζουμε από τη μέση
+       ημερήσια νέφωση των daylight ωρών.
+    */
+
+    if(
+        [
+            "storm",
+            "sleet",
+            "snow",
+            "rain"
+        ].includes(dominantCategory) &&
+        !precipitationAllowed
+    ){
+
+        let cloudTotal = 0;
+        let cloudCount = 0;
+
+
+        daytimeRows.forEach(i => {
+
+            const cloud =
+                Number(
+                    hourly.cloud_cover[i]
+                    || 0
+                );
+
+
+            cloudTotal += cloud;
+
+            cloudCount++;
+
+        });
+
+
+        const averageDayCloud =
+            cloudCount
+                ? cloudTotal / cloudCount
+                : Number(
+                    daily.cloud_cover_mean[dayIndex]
+                    || 0
+                );
+
+
+        if(averageDayCloud >= 70){
+
+            return 3;
+
+        }
+
+
+        if(averageDayCloud >= 35){
+
+            return 2;
+
+        }
+
+
+        return 0;
+
+    }
+
+
+    /*
+       Αν υπάρχει πραγματικός υετός >=31%,
+       επιστρέφουμε έναν αντιπροσωπευτικό κωδικό
+       από τις daylight ώρες.
+    */
+
+    if(precipitationAllowed){
+
+        const matchingRows =
+            daytimeRows.filter(i => {
+
+                return (
+                    weatherCategory(
+                        hourly.weather_code[i]
+                    ) === dominantCategory
+                );
+
+            });
+
+
+        if(matchingRows.length){
+
+            /*
+               Παίρνουμε τον πιο συχνό ακριβή WMO code
+               μέσα στην κυρίαρχη κατηγορία.
+            */
+
+            const codeCounts = {};
+
+
+            matchingRows.forEach(i => {
+
+                const code =
+                    Number(
+                        hourly.weather_code[i]
+                    );
+
+
+                codeCounts[code] =
+                    (codeCounts[code] || 0) + 1;
+
+            });
+
+
+            let selectedCode =
+                Number(
+                    hourly.weather_code[
+                        matchingRows[0]
+                    ]
+                );
+
+            let selectedCount =
+                -1;
+
+
+            Object.keys(codeCounts).forEach(code => {
+
+                if(
+                    codeCounts[code] >
+                    selectedCount
+                ){
+
+                    selectedCode =
+                        Number(code);
+
+                    selectedCount =
+                        codeCounts[code];
+
+                }
+
+            });
+
+
+            return selectedCode;
+
+        }
+
+    }
+
+
+    /*
+       Για μη-υετικές συνθήκες παίρνουμε τον
+       συχνότερο ακριβή daylight κωδικό.
+    */
+
+    const nonPrecipRows =
+        daytimeRows.filter(i => {
+
+            const category =
+                weatherCategory(
+                    hourly.weather_code[i]
+                );
+
+
+            return ![
+                "storm",
+                "sleet",
+                "snow",
+                "rain"
+            ].includes(category);
+
+        });
+
+
+    const rowsToUse =
+        nonPrecipRows.length
+            ? nonPrecipRows
+            : daytimeRows;
+
+
+    const codeCounts = {};
+
+
+    rowsToUse.forEach(i => {
+
+        const code =
+            Number(
+                hourly.weather_code[i]
+            );
+
+
+        codeCounts[code] =
+            (codeCounts[code] || 0) + 1;
+
+    });
+
+
+    let selectedCode =
+        Number(
+            rowsToUse[0] !== undefined
+                ? hourly.weather_code[rowsToUse[0]]
+                : daily.weather_code[dayIndex]
+        );
+
+
+    let selectedCount =
+        -1;
+
+
+    Object.keys(codeCounts).forEach(code => {
+
+        if(
+            codeCounts[code] >
+            selectedCount
+        ){
+
+            selectedCode =
+                Number(code);
+
+            selectedCount =
+                codeCounts[code];
+
+        }
+
+    });
+
+
+    return selectedCode;
+
+}
+
+
+/* =====================================
    15 DAYS
 ===================================== */
 
@@ -3896,9 +4577,11 @@ function renderForecast(){
 
 
         const rain =
-            Number(
-                d.precipitation_probability_max[i]
-                || 0
+            Math.round(
+                Number(
+                    d.precipitation_probability_max[i]
+                    || 0
+                )
             );
 
 
@@ -3925,8 +4608,22 @@ function renderForecast(){
 
         /*
            =================================
-           ΑΥΣΤΗΡΟ ΟΡΙΟ ΥΕΤΟΥ
+           ΗΜΕΡΗΣΙΟ ΕΙΚΟΝΙΔΙΟ:
+           ΒΑΣΙΖΕΤΑΙ ΣΤΙΣ DAYLIGHT ΩΡΕΣ
            
+           Οι ώρες της νύχτας δεν επηρεάζουν
+           πλέον το εικονίδιο της ημέρας.
+        =================================
+        */
+
+        const dailyCode =
+            getDailyDaylightWeatherCode(i);
+
+
+        /*
+           =================================
+           ΑΥΣΤΗΡΟ ΟΡΙΟ ΥΕΤΟΥ
+
            31% ΚΑΙ ΠΑΝΩ:
            εμφανίζεται emoji υετού.
 
@@ -3942,34 +4639,43 @@ function renderForecast(){
 
             if(
                 [56,57,66,67].includes(
-                    Number(d.weather_code[i])
+                    dailyCode
                 )
             ){
 
                 precipitationInfo =
-                    `🌨️ ${Math.round(rain)}%`;
+                    `🌨️ ${rain}%`;
 
             }else if(
                 [71,73,75,77,85,86].includes(
-                    Number(d.weather_code[i])
+                    dailyCode
                 ) ||
                 snow > 0
             ){
 
                 precipitationInfo =
-                    `❄️ ${Math.round(rain)}%`;
+                    `❄️ ${rain}%`;
+
+            }else if(
+                [95,96,99].includes(
+                    dailyCode
+                )
+            ){
+
+                precipitationInfo =
+                    `⛈️ ${rain}%`;
 
             }else{
 
                 precipitationInfo =
-                    `💧 ${Math.round(rain)}%`;
+                    `💧 ${rain}%`;
 
             }
 
         }else{
 
             precipitationInfo =
-                `${Math.round(rain)}%`;
+                `${rain}%`;
 
         }
 
@@ -3998,7 +4704,7 @@ function renderForecast(){
             <div class="icon">
 
                 ${weatherIcon(
-                    d.weather_code[i],
+                    dailyCode,
                     true,
                     rain,
                     snow,
@@ -4225,6 +4931,13 @@ function showHourly(dayIndex){
 
                 precipitationHTML =
                     `❄️ ${rain}%`;
+
+            }else if(
+                [95,96,99].includes(code)
+            ){
+
+                precipitationHTML =
+                    `⛈️ ${rain}%`;
 
             }else{
 
