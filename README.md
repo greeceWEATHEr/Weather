@@ -2135,46 +2135,357 @@ function weatherIcon(
         Number(cloudCover || 0);
 
 
+    const rainCodes = [
+
+        51,53,55,
+        61,63,65,
+        80,81,82
+
+    ];
+
+
+    const sleetCodes = [
+
+        56,57,
+        66,67
+
+    ];
+
+
+    const snowCodes = [
+
+        71,73,75,77,
+        85,86
+
+    ];
+
+
+    const stormCodes = [
+
+        95,96,99
+
+    ];
+
+
     const hasPrecipitation =
 
         snowfall > 0 ||
 
-        [
-            51,53,55,56,57,
-            61,63,65,66,67,
-            71,73,75,77,
-            80,81,82,
-            85,86,
-            95,96,99
-        ].includes(code);
+        rainCodes.includes(code) ||
 
+        sleetCodes.includes(code) ||
 
-    /*
-       ΠΛΗΡΗΣ ΣΥΝΝΕΦΙΑ
+        snowCodes.includes(code) ||
 
-       Όταν υπάρχει υετός και η νεφοκάλυψη
-       είναι υψηλή, χρησιμοποιείται αποκλειστικά
-       το εικονίδιο πλήρους συννεφιάς.
+        stormCodes.includes(code);
 
-       Έτσι έχουμε ξεχωριστά:
-       ☀️/🌙 + σύννεφα + υετό
-       και
-       ☁️ + υετό
-    */
 
     const fullClouds =
         cloudCover >= 70;
 
 
-    /*
-       ΔΥΝΑΤΟΣ ΑΝΕΜΟΣ
+    const strongWind =
+        windSpeed >= 32;
 
-       Πάνω από 32 km/h,
-       αλλά ποτέ όταν υπάρχει υετός.
+
+    /*
+       =================================
+       ΙΣΧΥΡΟΣ ΑΝΕΜΟΣ + ΥΕΤΟΣ
+       >=32 km/h
+       =================================
     */
 
     if(
-        windSpeed > 32 &&
+        strongWind &&
+        hasPrecipitation
+    ){
+
+        /* ΚΑΤΑΙΓΙΔΑ */
+
+        if(stormCodes.includes(code)){
+
+            return svgWrap(`
+
+                <path
+                    d="M15 39
+                       C8 39 8 29 16 26
+                       C18 18 29 15 36 22
+                       C45 20 53 27 50 35
+                       C56 38 53 46 45 46
+                       H15Z"
+                    fill="#66798D"/>
+
+                <path
+                    d="M31 36
+                       L24 50
+                       L32 47
+                       L28 61
+                       L42 42
+                       L34 45
+                       L40 36Z"
+                    fill="#FFD83D"/>
+
+                <path
+                    d="M10 49
+                       C18 44 24 51 31 47"
+                    fill="none"
+                    stroke="#55BCEB"
+                    stroke-width="3"
+                    stroke-linecap="round"/>
+
+                <path
+                    d="M39 49
+                       C46 45 51 49 56 46"
+                    fill="none"
+                    stroke="#55BCEB"
+                    stroke-width="3"
+                    stroke-linecap="round"/>
+
+                <path
+                    d="M9 55
+                       C16 51 21 56 27 53"
+                    fill="none"
+                    stroke="#DCEAF4"
+                    stroke-width="2.5"
+                    stroke-linecap="round"/>
+
+                <path
+                    d="M40 56
+                       C47 52 52 56 57 53"
+                    fill="none"
+                    stroke="#DCEAF4"
+                    stroke-width="2.5"
+                    stroke-linecap="round"/>
+
+            `);
+
+        }
+
+
+        /* ΕΝΤΟΝΟ ΧΙΟΝΟΝΕΡΟ */
+
+        if(sleetCodes.includes(code)){
+
+            return svgWrap(`
+
+                <path
+                    d="M13 39
+                       C7 39 7 30 15 27
+                       C17 19 28 17 35 23
+                       C44 21 52 28 49 36
+                       C55 39 52 47 44 47
+                       H13Z"
+                    fill="#617487"/>
+
+                <path
+                    d="M18 49
+                       L14 59"
+                    stroke="#55BCEB"
+                    stroke-width="3"
+                    stroke-linecap="round"/>
+
+                <path
+                    d="M29 49
+                       L25 59"
+                    stroke="#55BCEB"
+                    stroke-width="3"
+                    stroke-linecap="round"/>
+
+                <path
+                    d="M41 49
+                       L37 59"
+                    stroke="#55BCEB"
+                    stroke-width="3"
+                    stroke-linecap="round"/>
+
+                <path
+                    d="M49 47
+                       L49 57
+                       M44 52
+                       L54 52
+                       M45.5 48.5
+                       L52.5 55.5
+                       M52.5 48.5
+                       L45.5 55.5"
+                    stroke="#FFFFFF"
+                    stroke-width="2"
+                    stroke-linecap="round"/>
+
+                <path
+                    d="M7 22
+                       L20 17"
+                    stroke="#E8F1F7"
+                    stroke-width="3"
+                    stroke-linecap="round"/>
+
+                <path
+                    d="M40 18
+                       L56 14"
+                    stroke="#E8F1F7"
+                    stroke-width="3"
+                    stroke-linecap="round"/>
+
+            `);
+
+        }
+
+
+        /* ΕΝΤΟΝΗ ΧΙΟΝΟΠΤΩΣΗ */
+
+        if(
+            snowCodes.includes(code) ||
+            snowfall > 0
+        ){
+
+            return svgWrap(`
+
+                <path
+                    d="M13 39
+                       C7 39 7 30 15 27
+                       C17 19 28 17 35 23
+                       C44 21 52 28 49 36
+                       C55 39 52 47 44 47
+                       H13Z"
+                    fill="#5F7286"/>
+
+                <path
+                    d="M17 48
+                       L17 59
+                       M11.5 53.5
+                       L22.5 53.5
+                       M13 49.5
+                       L21 57.5
+                       M21 49.5
+                       L13 57.5"
+                    stroke="#FFFFFF"
+                    stroke-width="2"
+                    stroke-linecap="round"/>
+
+                <path
+                    d="M31 48
+                       L31 60
+                       M25 54
+                       L37 54
+                       M26.5 49.5
+                       L35.5 58.5
+                       M35.5 49.5
+                       L26.5 58.5"
+                    stroke="#F7FBFF"
+                    stroke-width="2"
+                    stroke-linecap="round"/>
+
+                <path
+                    d="M46 48
+                       L46 58
+                       M41 53
+                       L51 53
+                       M42.5 49.5
+                       L49.5 56.5
+                       M49.5 49.5
+                       L42.5 56.5"
+                    stroke="#FFFFFF"
+                    stroke-width="2"
+                    stroke-linecap="round"/>
+
+                <path
+                    d="M7 23
+                       L20 18"
+                    stroke="#E8F1F7"
+                    stroke-width="3"
+                    stroke-linecap="round"/>
+
+                <path
+                    d="M40 18
+                       L56 14"
+                    stroke="#E8F1F7"
+                    stroke-width="3"
+                    stroke-linecap="round"/>
+
+            `);
+
+        }
+
+
+        /* ΕΝΤΟΝΗ ΒΡΟΧΗ */
+
+        if(rainCodes.includes(code)){
+
+            return svgWrap(`
+
+                <path
+                    d="M13 39
+                       C7 39 7 30 15 27
+                       C17 19 28 17 35 23
+                       C44 21 52 28 49 36
+                       C55 39 52 47 44 47
+                       H13Z"
+                    fill="#5E7387"/>
+
+                <path
+                    d="M17 48
+                       L12 61"
+                    stroke="#4AB9EB"
+                    stroke-width="4"
+                    stroke-linecap="round"/>
+
+                <path
+                    d="M29 48
+                       L24 61"
+                    stroke="#4AB9EB"
+                    stroke-width="4"
+                    stroke-linecap="round"/>
+
+                <path
+                    d="M41 48
+                       L36 61"
+                    stroke="#4AB9EB"
+                    stroke-width="4"
+                    stroke-linecap="round"/>
+
+                <path
+                    d="M7 22
+                       L20 17"
+                    stroke="#E8F1F7"
+                    stroke-width="3"
+                    stroke-linecap="round"/>
+
+                <path
+                    d="M40 18
+                       L56 14"
+                    stroke="#E8F1F7"
+                    stroke-width="3"
+                    stroke-linecap="round"/>
+
+                <path
+                    d="M9 53
+                       L4 58"
+                    stroke="#CFE4EF"
+                    stroke-width="2.5"
+                    stroke-linecap="round"/>
+
+                <path
+                    d="M51 51
+                       L58 55"
+                    stroke="#CFE4EF"
+                    stroke-width="2.5"
+                    stroke-linecap="round"/>
+
+            `);
+
+        }
+
+    }
+
+
+    /*
+       =================================
+       ΔΥΝΑΤΟΣ ΑΝΕΜΟΣ ΧΩΡΙΣ ΥΕΤΟ
+       >=32 km/h
+       =================================
+    */
+
+    if(
+        strongWind &&
         !hasPrecipitation &&
         ![45,48].includes(code)
     ){
@@ -2190,22 +2501,33 @@ function weatherIcon(
                     fill="#FFD34E"/>
 
                 <path
-                    d="M8 42 C20 34, 29 46, 39 38 C45 33, 51 36, 55 38"
+                    d="M8 42
+                       C20 34, 29 46, 39 38
+                       C45 33, 51 36, 55 38"
                     fill="none"
                     stroke="#D8E4EF"
                     stroke-width="4"
                     stroke-linecap="round"/>
 
                 <path
-                    d="M17 51 C27 45, 34 53, 44 47"
+                    d="M17 51
+                       C27 45, 34 53, 44 47"
                     fill="none"
                     stroke="#AFC5D9"
                     stroke-width="3"
                     stroke-linecap="round"/>
 
                 <path
-                    d="M40 17 L52 13"
+                    d="M40 17
+                       L52 13"
                     stroke="#FFFFFF"
+                    stroke-width="3"
+                    stroke-linecap="round"/>
+
+                <path
+                    d="M7 29
+                       L20 25"
+                    stroke="#E7EFF5"
                     stroke-width="3"
                     stroke-linecap="round"/>
 
@@ -2223,16 +2545,26 @@ function weatherIcon(
                 fill="#B9C4D0"/>
 
             <path
-                d="M9 42 C19 34, 28 44, 38 37 C44 33, 50 36, 55 39"
+                d="M9 42
+                   C19 34, 28 44, 38 37
+                   C44 33, 50 36, 55 39"
                 fill="none"
                 stroke="#D8E1EA"
                 stroke-width="7"
                 stroke-linecap="round"/>
 
             <path
-                d="M10 51 C22 44, 31 53, 44 47"
+                d="M10 51
+                   C22 44, 31 53, 44 47"
                 fill="none"
                 stroke="#AABAC9"
+                stroke-width="3"
+                stroke-linecap="round"/>
+
+            <path
+                d="M7 29
+                   L20 25"
+                stroke="#E7EFF5"
                 stroke-width="3"
                 stroke-linecap="round"/>
 
@@ -2246,7 +2578,7 @@ function weatherIcon(
     ================================= */
 
     if(
-        [95,96,99].includes(code)
+        stormCodes.includes(code)
     ){
 
         return svgWrap(`
@@ -2261,17 +2593,25 @@ function weatherIcon(
                 fill="#71849A"/>
 
             <path
-                d="M31 38 L25 51 L32 49 L29 60 L41 44 L34 46 L39 38Z"
+                d="M31 38
+                   L25 51
+                   L32 49
+                   L29 60
+                   L41 44
+                   L34 46
+                   L39 38Z"
                 fill="#FFD84A"/>
 
             <path
-                d="M23 48 L20 54"
+                d="M23 48
+                   L20 54"
                 stroke="#65BCEB"
                 stroke-width="3"
                 stroke-linecap="round"/>
 
             <path
-                d="M44 48 L41 54"
+                d="M44 48
+                   L41 54"
                 stroke="#65BCEB"
                 stroke-width="3"
                 stroke-linecap="round"/>
@@ -2287,44 +2627,46 @@ function weatherIcon(
     ================================= */
 
     if(
-        [56,57,66,67].includes(code) &&
+        sleetCodes.includes(code) &&
         fullClouds
     ){
 
         return svgWrap(`
 
             <path
-                d="M16 40
-                   C9 40 9 30 17 27
-                   C19 19 29 17 36 24
+                d="M12 40
+                   C7 40 7 31 15 27
+                   C17 19 28 17 36 24
                    C45 22 53 29 50 37
-                   C55 39 53 47 45 47
-                   H16Z"
-                fill="#718497"/>
+                   C56 40 53 48 45 48
+                   H12Z"
+                fill="#667A8E"/>
 
             <path
-                d="M22 49 L19 58"
+                d="M18 49
+                   L15 59"
                 stroke="#59B8E8"
                 stroke-width="3"
                 stroke-linecap="round"/>
 
             <path
-                d="M34 49 L31 58"
+                d="M30 49
+                   L27 59"
                 stroke="#59B8E8"
                 stroke-width="3"
                 stroke-linecap="round"/>
 
             <path
-                d="M44 50
-                   L44 56
-                   M41 53
-                   L47 53
-                   M42 51
-                   L46 55
-                   M46 51
-                   L42 55"
+                d="M43 50
+                   L43 57
+                   M39.5 53.5
+                   L46.5 53.5
+                   M40.5 51
+                   L45.5 56
+                   M45.5 51
+                   L40.5 56"
                 stroke="#FFFFFF"
-                stroke-width="1.7"
+                stroke-width="1.8"
                 stroke-linecap="round"/>
 
         `);
@@ -2335,50 +2677,63 @@ function weatherIcon(
     /* =================================
        ΠΛΗΡΗΣ ΣΥΝΝΕΦΙΑ + ΧΙΟΝΙ
        ΗΜΕΡΑ / ΝΥΧΤΑ
+       ΠΟΛΛΕΣ ΝΙΦΑΔΕΣ
     ================================= */
 
     if(
-        [
-            71,73,75,77,
-            85,86
-        ].includes(code) &&
+        snowCodes.includes(code) &&
         fullClouds
     ){
 
         return svgWrap(`
 
             <path
-                d="M16 40
-                   C9 40 9 30 17 27
-                   C19 19 29 17 36 24
+                d="M12 40
+                   C7 40 7 31 15 27
+                   C17 19 28 17 36 24
                    C45 22 53 29 50 37
-                   C55 39 53 47 45 47
-                   H16Z"
-                fill="#718497"/>
+                   C56 40 53 48 45 48
+                   H12Z"
+                fill="#667A8E"/>
 
             <path
-                d="M21 49 L21 57
-                   M17 53 L25 53
-                   M18 50 L24 56
-                   M24 50 L18 56"
+                d="M17 48
+                   L17 58
+                   M12 53
+                   L22 53
+                   M13.5 49.5
+                   L20.5 56.5
+                   M20.5 49.5
+                   L13.5 56.5"
                 stroke="#FFFFFF"
-                stroke-width="1.8"
+                stroke-width="1.9"
                 stroke-linecap="round"/>
 
             <path
-                d="M34 49 L34 57
-                   M30 53 L38 53
-                   M31 50 L37 56
-                   M37 50 L31 56"
-                stroke="#F4F8FC"
-                stroke-width="1.8"
+                d="M31 48
+                   L31 59
+                   M25.5 53.5
+                   L36.5 53.5
+                   M27 49.5
+                   L35 57.5
+                   M35 49.5
+                   L27 57.5"
+                stroke="#F7FBFF"
+                stroke-width="1.9"
                 stroke-linecap="round"/>
 
-            <circle
-                cx="45"
-                cy="54"
-                r="2.5"
-                fill="#FFFFFF"/>
+            <path
+                d="M45 49
+                   L45 58
+                   M40.5 53.5
+                   L49.5 53.5
+                   M41.5 50
+                   L48.5 57
+                   M48.5 50
+                   L41.5 57"
+                stroke="#FFFFFF"
+                stroke-width="1.9"
+                stroke-linecap="round"/>
 
         `);
 
@@ -2391,39 +2746,38 @@ function weatherIcon(
     ================================= */
 
     if(
-        [
-            51,53,55,
-            61,63,65,
-            80,81,82
-        ].includes(code) &&
+        rainCodes.includes(code) &&
         fullClouds
     ){
 
         return svgWrap(`
 
             <path
-                d="M16 40
-                   C9 40 9 30 17 27
-                   C19 19 29 17 36 24
+                d="M12 40
+                   C7 40 7 31 15 27
+                   C17 19 28 17 36 24
                    C45 22 53 29 50 37
-                   C55 39 53 47 45 47
-                   H16Z"
-                fill="#718497"/>
+                   C56 40 53 48 45 48
+                   H12Z"
+                fill="#667A8E"/>
 
             <path
-                d="M21 49 L18 58"
+                d="M18 49
+                   L15 59"
                 stroke="#56BCEB"
                 stroke-width="3"
                 stroke-linecap="round"/>
 
             <path
-                d="M32 49 L29 58"
+                d="M31 49
+                   L28 59"
                 stroke="#56BCEB"
                 stroke-width="3"
                 stroke-linecap="round"/>
 
             <path
-                d="M43 49 L40 58"
+                d="M44 49
+                   L41 59"
                 stroke="#56BCEB"
                 stroke-width="3"
                 stroke-linecap="round"/>
@@ -2439,7 +2793,7 @@ function weatherIcon(
     ================================= */
 
     if(
-        [66,67,56,57].includes(code)
+        sleetCodes.includes(code)
     ){
 
         if(isDay){
@@ -2462,13 +2816,15 @@ function weatherIcon(
                     fill="#8295A8"/>
 
                 <path
-                    d="M24 48 L21 57"
+                    d="M24 48
+                       L21 57"
                     stroke="#59B8E8"
                     stroke-width="3"
                     stroke-linecap="round"/>
 
                 <path
-                    d="M36 49 L33 57"
+                    d="M36 49
+                       L33 57"
                     stroke="#59B8E8"
                     stroke-width="3"
                     stroke-linecap="round"/>
@@ -2509,13 +2865,15 @@ function weatherIcon(
                 fill="#7A8B9D"/>
 
             <path
-                d="M24 48 L21 57"
+                d="M24 48
+                   L21 57"
                 stroke="#59B8E8"
                 stroke-width="3"
                 stroke-linecap="round"/>
 
             <path
-                d="M36 49 L33 57"
+                d="M36 49
+                   L33 57"
                 stroke="#59B8E8"
                 stroke-width="3"
                 stroke-linecap="round"/>
@@ -2541,13 +2899,12 @@ function weatherIcon(
     /* =================================
        ΧΙΟΝΙ
        ΗΛΙΟΣ/ΦΕΓΓΑΡΙ + ΣΥΝΝΕΦΟ
+       ΠΟΛΛΕΣ ΝΙΦΑΔΕΣ
     ================================= */
 
     if(
-        [
-            71,73,75,77,
-            85,86
-        ].includes(code)
+        snowCodes.includes(code) ||
+        snowfall > 0
     ){
 
         if(isDay){
@@ -2562,29 +2919,50 @@ function weatherIcon(
 
                 <path
                     d="M18 41
-                       C11 41 10 31 18 28
-                       C20 21 30 19 36 25
-                       C45 23 52 30 49 38
-                       C54 40 52 47 45 47
-                       H18Z"
+                   C11 41 10 31 18 28
+                   C20 21 30 19 36 25
+                   C45 23 52 30 49 38
+                   C54 40 52 47 45 47
+                   H18Z"
                     fill="#8799AA"/>
 
                 <path
-                    d="M21 48 L21 56
-                       M17 52 L25 52
-                       M18 49 L24 55
-                       M24 49 L18 55"
+                    d="M18 48
+                       L18 57
+                       M13.5 52.5
+                       L22.5 52.5
+                       M14.5 49
+                       L21.5 56
+                       M21.5 49
+                       L14.5 56"
                     stroke="#FFFFFF"
-                    stroke-width="1.7"
+                    stroke-width="1.8"
                     stroke-linecap="round"/>
 
                 <path
-                    d="M32 50 L32 58
-                       M28 54 L36 54
-                       M29 51 L35 57
-                       M35 51 L29 57"
+                    d="M31 48
+                       L31 58
+                       M26 53
+                       L36 53
+                       M27.5 49.5
+                       L34.5 56.5
+                       M34.5 49.5
+                       L27.5 56.5"
                     stroke="#F4F8FC"
-                    stroke-width="1.7"
+                    stroke-width="1.8"
+                    stroke-linecap="round"/>
+
+                <path
+                    d="M44 49
+                       L44 57
+                       M40 53
+                       L48 53
+                       M41 50
+                       L47 56
+                       M47 50
+                       L41 56"
+                    stroke="#FFFFFF"
+                    stroke-width="1.8"
                     stroke-linecap="round"/>
 
             `);
@@ -2610,21 +2988,42 @@ function weatherIcon(
                 fill="#718397"/>
 
             <path
-                d="M21 49 L21 57
-                   M17 53 L25 53
-                   M18 50 L24 56
-                   M24 50 L18 56"
+                d="M18 49
+                   L18 58
+                   M13.5 53.5
+                   L22.5 53.5
+                   M14.5 50
+                   L21.5 57
+                   M21.5 50
+                   L14.5 57"
                 stroke="#FFFFFF"
-                stroke-width="1.7"
+                stroke-width="1.8"
                 stroke-linecap="round"/>
 
             <path
-                d="M32 51 L32 59
-                   M28 55 L36 55
-                   M29 52 L35 58
-                   M35 52 L29 58"
+                d="M31 49
+                   L31 59
+                   M26 54
+                   L36 54
+                   M27.5 50.5
+                   L34.5 57.5
+                   M34.5 50.5
+                   L27.5 57.5"
                 stroke="#F4F8FC"
-                stroke-width="1.7"
+                stroke-width="1.8"
+                stroke-linecap="round"/>
+
+            <path
+                d="M44 50
+                   L44 58
+                   M40 54
+                   L48 54
+                   M41 51
+                   L47 57
+                   M47 51
+                   L41 57"
+                stroke="#FFFFFF"
+                stroke-width="1.8"
                 stroke-linecap="round"/>
 
         `);
@@ -2638,11 +3037,7 @@ function weatherIcon(
     ================================= */
 
     if(
-        [
-            51,53,55,
-            61,63,65,
-            80,81,82
-        ].includes(code)
+        rainCodes.includes(code)
     ){
 
         if(isDay){
@@ -2665,19 +3060,22 @@ function weatherIcon(
                     fill="#7D91A5"/>
 
                 <path
-                    d="M21 49 L18 58"
+                    d="M21 49
+                       L18 58"
                     stroke="#56BCEB"
                     stroke-width="3"
                     stroke-linecap="round"/>
 
                 <path
-                    d="M32 49 L29 58"
+                    d="M32 49
+                       L29 58"
                     stroke="#56BCEB"
                     stroke-width="3"
                     stroke-linecap="round"/>
 
                 <path
-                    d="M43 49 L40 58"
+                    d="M43 49
+                       L40 58"
                     stroke="#56BCEB"
                     stroke-width="3"
                     stroke-linecap="round"/>
@@ -2705,19 +3103,22 @@ function weatherIcon(
                 fill="#6F8194"/>
 
             <path
-                d="M21 49 L18 58"
+                d="M21 49
+                   L18 58"
                 stroke="#56BCEB"
                 stroke-width="3"
                 stroke-linecap="round"/>
 
             <path
-                d="M32 49 L29 58"
+                d="M32 49
+                   L29 58"
                 stroke="#56BCEB"
                 stroke-width="3"
                 stroke-linecap="round"/>
 
             <path
-                d="M43 49 L40 58"
+                d="M43 49
+                   L40 58"
                 stroke="#56BCEB"
                 stroke-width="3"
                 stroke-linecap="round"/>
@@ -3585,8 +3986,14 @@ function renderForecast(){
         /*
            ΥΕΤΟΣ:
 
-           31% και πάνω = εμφανίζεται emoji
-           30% και κάτω = κανένα emoji
+           Το ποσοστό εμφανίζεται ΠΑΝΤΑ.
+
+           31% και πάνω:
+           εμφανίζεται και το αντίστοιχο emoji.
+
+           0–30%:
+           εμφανίζεται μόνο το ποσοστό,
+           χωρίς emoji υετού.
         */
 
         let precipitationInfo = "";
@@ -3594,10 +4001,36 @@ function renderForecast(){
 
         if(rain >= 31){
 
-            precipitationInfo =
+            if(
+                [56,57,66,67].includes(
+                    Number(d.weather_code[i])
+                )
+            ){
+
+                precipitationInfo =
+                    `🌨️ ${Math.round(rain)}%`;
+
+            }else if(
+                [71,73,75,77,85,86].includes(
+                    Number(d.weather_code[i])
+                ) ||
                 snow > 0
-                    ? `❄️ ${Math.round(rain)}%`
-                    : `💧 ${Math.round(rain)}%`;
+            ){
+
+                precipitationInfo =
+                    `❄️ ${Math.round(rain)}%`;
+
+            }else{
+
+                precipitationInfo =
+                    `💧 ${Math.round(rain)}%`;
+
+            }
+
+        }else{
+
+            precipitationInfo =
+                `${Math.round(rain)}%`;
 
         }
 
@@ -3825,8 +4258,13 @@ function showHourly(dayIndex){
         /*
            ΥΕΤΟΣ:
 
-           31% και πάνω = εμφανίζεται emoji
-           30% και κάτω = κανένα emoji
+           Το ποσοστό εμφανίζεται ΠΑΝΤΑ.
+
+           31% και πάνω:
+           εμφανίζεται και emoji.
+
+           0–30%:
+           κανένα emoji υετού.
         */
 
         let precipitationHTML = "";
@@ -3834,10 +4272,32 @@ function showHourly(dayIndex){
 
         if(rain >= 31){
 
-            precipitationHTML =
+            if(
+                [56,57,66,67].includes(code)
+            ){
+
+                precipitationHTML =
+                    `🌨️ ${rain}%`;
+
+            }else if(
+                [71,73,75,77,85,86].includes(code) ||
                 snowfall > 0
-                    ? `❄️ ${rain}%`
-                    : `💧 ${rain}%`;
+            ){
+
+                precipitationHTML =
+                    `❄️ ${rain}%`;
+
+            }else{
+
+                precipitationHTML =
+                    `💧 ${rain}%`;
+
+            }
+
+        }else{
+
+            precipitationHTML =
+                `${rain}%`;
 
         }
 
