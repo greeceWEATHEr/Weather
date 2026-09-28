@@ -286,6 +286,7 @@ body{
     justify-content:center;
 }
 
+
 /* =====================================
    ΝΕΑ ΕΝΙΑΙΑ ΚΑΙΡΙΚΑ ΕΙΚΟΝΙΔΙΑ
 ===================================== */
@@ -2114,7 +2115,8 @@ function weatherIcon(
     isDay = true,
     precipitationProbability = 0,
     snowfall = 0,
-    windSpeed = 0
+    windSpeed = 0,
+    cloudCover = 0
 ){
 
     code =
@@ -2128,6 +2130,9 @@ function weatherIcon(
 
     windSpeed =
         Number(windSpeed || 0);
+
+    cloudCover =
+        Number(cloudCover || 0);
 
 
     const hasPrecipitation =
@@ -2145,73 +2150,62 @@ function weatherIcon(
 
 
     /*
+       ΠΛΗΡΗΣ ΣΥΝΝΕΦΙΑ
+
+       Όταν υπάρχει υετός και η νεφοκάλυψη
+       είναι υψηλή, χρησιμοποιείται αποκλειστικά
+       το εικονίδιο πλήρους συννεφιάς.
+
+       Έτσι έχουμε ξεχωριστά:
+       ☀️/🌙 + σύννεφα + υετό
+       και
+       ☁️ + υετό
+    */
+
+    const fullClouds =
+        cloudCover >= 70;
+
+
+    /*
        ΔΥΝΑΤΟΣ ΑΝΕΜΟΣ
 
        Πάνω από 32 km/h,
-       αλλά ΠΟΤΕ όταν υπάρχει υετός.
+       αλλά ποτέ όταν υπάρχει υετός.
     */
 
     if(
         windSpeed > 32 &&
-        !hasPrecipitation
+        !hasPrecipitation &&
+        ![45,48].includes(code)
     ){
 
         if(isDay){
 
-            if(code === 0){
-
-                return svgWrap(`
-
-                    <circle
-                        cx="23"
-                        cy="24"
-                        r="10"
-                        fill="#FFD34E"/>
-
-                    <path
-                        d="M8 42 C20 34, 29 46, 39 38 C45 33, 51 36, 55 38"
-                        fill="none"
-                        stroke="#D8E4EF"
-                        stroke-width="4"
-                        stroke-linecap="round"/>
-
-                    <path
-                        d="M17 51 C27 45, 34 53, 44 47"
-                        fill="none"
-                        stroke="#AFC5D9"
-                        stroke-width="3"
-                        stroke-linecap="round"/>
-
-                    <path
-                        d="M40 17 L52 13"
-                        stroke="#FFFFFF"
-                        stroke-width="3"
-                        stroke-linecap="round"/>
-
-                `);
-
-            }
-
-
             return svgWrap(`
 
                 <circle
-                    cx="21"
-                    cy="22"
-                    r="9"
+                    cx="23"
+                    cy="24"
+                    r="10"
                     fill="#FFD34E"/>
 
                 <path
-                    d="M9 40 C18 32, 28 40, 36 35 C41 31, 47 33, 52 36"
+                    d="M8 42 C20 34, 29 46, 39 38 C45 33, 51 36, 55 38"
                     fill="none"
                     stroke="#D8E4EF"
-                    stroke-width="7"
+                    stroke-width="4"
                     stroke-linecap="round"/>
 
                 <path
-                    d="M10 50 C22 43, 31 52, 44 46"
+                    d="M17 51 C27 45, 34 53, 44 47"
                     fill="none"
                     stroke="#AFC5D9"
+                    stroke-width="3"
+                    stroke-linecap="round"/>
+
+                <path
+                    d="M40 17 L52 13"
+                    stroke="#FFFFFF"
                     stroke-width="3"
                     stroke-linecap="round"/>
 
@@ -2288,74 +2282,151 @@ function weatherIcon(
 
 
     /* =================================
-       ΧΙΟΝΙ
+       ΠΛΗΡΗΣ ΣΥΝΝΕΦΙΑ + ΧΙΟΝΟΝΕΡΟ
+       ΗΜΕΡΑ / ΝΥΧΤΑ
+    ================================= */
+
+    if(
+        [56,57,66,67].includes(code) &&
+        fullClouds
+    ){
+
+        return svgWrap(`
+
+            <path
+                d="M16 40
+                   C9 40 9 30 17 27
+                   C19 19 29 17 36 24
+                   C45 22 53 29 50 37
+                   C55 39 53 47 45 47
+                   H16Z"
+                fill="#718497"/>
+
+            <path
+                d="M22 49 L19 58"
+                stroke="#59B8E8"
+                stroke-width="3"
+                stroke-linecap="round"/>
+
+            <path
+                d="M34 49 L31 58"
+                stroke="#59B8E8"
+                stroke-width="3"
+                stroke-linecap="round"/>
+
+            <path
+                d="M44 50
+                   L44 56
+                   M41 53
+                   L47 53
+                   M42 51
+                   L46 55
+                   M46 51
+                   L42 55"
+                stroke="#FFFFFF"
+                stroke-width="1.7"
+                stroke-linecap="round"/>
+
+        `);
+
+    }
+
+
+    /* =================================
+       ΠΛΗΡΗΣ ΣΥΝΝΕΦΙΑ + ΧΙΟΝΙ
+       ΗΜΕΡΑ / ΝΥΧΤΑ
     ================================= */
 
     if(
         [
             71,73,75,77,
             85,86
-        ].includes(code)
+        ].includes(code) &&
+        fullClouds
     ){
-
-        if(isDay){
-
-            return svgWrap(`
-
-                <circle
-                    cx="22"
-                    cy="21"
-                    r="10"
-                    fill="#FFD34E"/>
-
-                <path
-                    d="M18 41
-                       C11 41 10 31 18 28
-                       C20 21 30 19 36 25
-                       C45 23 52 30 49 38
-                       C54 40 52 47 45 47
-                       H18Z"
-                    fill="#8799AA"/>
-
-                <circle cx="21" cy="52" r="2.5" fill="#F4F8FC"/>
-                <circle cx="32" cy="55" r="2.5" fill="#F4F8FC"/>
-                <circle cx="43" cy="51" r="2.5" fill="#F4F8FC"/>
-
-                <path
-                    d="M21 48 L21 56 M17 52 L25 52 M18 49 L24 55 M24 49 L18 55"
-                    stroke="#FFFFFF"
-                    stroke-width="1.7"/>
-
-            `);
-
-        }
-
 
         return svgWrap(`
 
             <path
-                d="M23 9
-                   A13 13 0 1 0 39 29
-                   A11 11 0 1 1 23 9Z"
-                fill="#B8C3CE"/>
+                d="M16 40
+                   C9 40 9 30 17 27
+                   C19 19 29 17 36 24
+                   C45 22 53 29 50 37
+                   C55 39 53 47 45 47
+                   H16Z"
+                fill="#718497"/>
 
             <path
-                d="M18 42
-                   C11 42 10 32 18 29
-                   C20 22 30 20 36 26
-                   C45 24 52 31 49 39
-                   C54 41 52 48 45 48
-                   H18Z"
-                fill="#718397"/>
-
-            <circle cx="21" cy="53" r="2.5" fill="#FFFFFF"/>
-            <circle cx="32" cy="56" r="2.5" fill="#FFFFFF"/>
-            <circle cx="43" cy="52" r="2.5" fill="#FFFFFF"/>
+                d="M21 49 L21 57
+                   M17 53 L25 53
+                   M18 50 L24 56
+                   M24 50 L18 56"
+                stroke="#FFFFFF"
+                stroke-width="1.8"
+                stroke-linecap="round"/>
 
             <path
-                d="M21 49 L21 57 M17 53 L25 53 M18 50 L24 56 M24 50 L18 56"
+                d="M34 49 L34 57
+                   M30 53 L38 53
+                   M31 50 L37 56
+                   M37 50 L31 56"
                 stroke="#F4F8FC"
-                stroke-width="1.7"/>
+                stroke-width="1.8"
+                stroke-linecap="round"/>
+
+            <circle
+                cx="45"
+                cy="54"
+                r="2.5"
+                fill="#FFFFFF"/>
+
+        `);
+
+    }
+
+
+    /* =================================
+       ΠΛΗΡΗΣ ΣΥΝΝΕΦΙΑ + ΒΡΟΧΗ
+       ΗΜΕΡΑ / ΝΥΧΤΑ
+    ================================= */
+
+    if(
+        [
+            51,53,55,
+            61,63,65,
+            80,81,82
+        ].includes(code) &&
+        fullClouds
+    ){
+
+        return svgWrap(`
+
+            <path
+                d="M16 40
+                   C9 40 9 30 17 27
+                   C19 19 29 17 36 24
+                   C45 22 53 29 50 37
+                   C55 39 53 47 45 47
+                   H16Z"
+                fill="#718497"/>
+
+            <path
+                d="M21 49 L18 58"
+                stroke="#56BCEB"
+                stroke-width="3"
+                stroke-linecap="round"/>
+
+            <path
+                d="M32 49 L29 58"
+                stroke="#56BCEB"
+                stroke-width="3"
+                stroke-linecap="round"/>
+
+            <path
+                d="M43 49 L40 58"
+                stroke="#56BCEB"
+                stroke-width="3"
+                stroke-linecap="round"/>
 
         `);
 
@@ -2364,6 +2435,7 @@ function weatherIcon(
 
     /* =================================
        ΧΙΟΝΟΝΕΡΟ
+       ΗΛΙΟΣ/ΦΕΓΓΑΡΙ + ΣΥΝΝΕΦΟ
     ================================= */
 
     if(
@@ -2401,11 +2473,18 @@ function weatherIcon(
                     stroke-width="3"
                     stroke-linecap="round"/>
 
-                <circle
-                    cx="45"
-                    cy="53"
-                    r="2.5"
-                    fill="#FFFFFF"/>
+                <path
+                    d="M45 49
+                       L45 56
+                       M42 52.5
+                       L48 52.5
+                       M43 50.5
+                       L47 54.5
+                       M47 50.5
+                       L43 54.5"
+                    stroke="#FFFFFF"
+                    stroke-width="1.6"
+                    stroke-linecap="round"/>
 
             `);
 
@@ -2441,11 +2520,112 @@ function weatherIcon(
                 stroke-width="3"
                 stroke-linecap="round"/>
 
-            <circle
-                cx="45"
-                cy="53"
-                r="2.5"
-                fill="#FFFFFF"/>
+            <path
+                d="M45 49
+                   L45 56
+                   M42 52.5
+                   L48 52.5
+                   M43 50.5
+                   L47 54.5
+                   M47 50.5
+                   L43 54.5"
+                stroke="#FFFFFF"
+                stroke-width="1.6"
+                stroke-linecap="round"/>
+
+        `);
+
+    }
+
+
+    /* =================================
+       ΧΙΟΝΙ
+       ΗΛΙΟΣ/ΦΕΓΓΑΡΙ + ΣΥΝΝΕΦΟ
+    ================================= */
+
+    if(
+        [
+            71,73,75,77,
+            85,86
+        ].includes(code)
+    ){
+
+        if(isDay){
+
+            return svgWrap(`
+
+                <circle
+                    cx="22"
+                    cy="21"
+                    r="10"
+                    fill="#FFD34E"/>
+
+                <path
+                    d="M18 41
+                       C11 41 10 31 18 28
+                       C20 21 30 19 36 25
+                       C45 23 52 30 49 38
+                       C54 40 52 47 45 47
+                       H18Z"
+                    fill="#8799AA"/>
+
+                <path
+                    d="M21 48 L21 56
+                       M17 52 L25 52
+                       M18 49 L24 55
+                       M24 49 L18 55"
+                    stroke="#FFFFFF"
+                    stroke-width="1.7"
+                    stroke-linecap="round"/>
+
+                <path
+                    d="M32 50 L32 58
+                       M28 54 L36 54
+                       M29 51 L35 57
+                       M35 51 L29 57"
+                    stroke="#F4F8FC"
+                    stroke-width="1.7"
+                    stroke-linecap="round"/>
+
+            `);
+
+        }
+
+
+        return svgWrap(`
+
+            <path
+                d="M23 9
+                   A13 13 0 1 0 39 29
+                   A11 11 0 1 1 23 9Z"
+                fill="#B8C3CE"/>
+
+            <path
+                d="M18 42
+                   C11 42 10 32 18 29
+                   C20 22 30 20 36 26
+                   C45 24 52 31 49 39
+                   C54 41 52 48 45 48
+                   H18Z"
+                fill="#718397"/>
+
+            <path
+                d="M21 49 L21 57
+                   M17 53 L25 53
+                   M18 50 L24 56
+                   M24 50 L18 56"
+                stroke="#FFFFFF"
+                stroke-width="1.7"
+                stroke-linecap="round"/>
+
+            <path
+                d="M32 51 L32 59
+                   M28 55 L36 55
+                   M29 52 L35 58
+                   M35 52 L29 58"
+                stroke="#F4F8FC"
+                stroke-width="1.7"
+                stroke-linecap="round"/>
 
         `);
 
@@ -2454,6 +2634,7 @@ function weatherIcon(
 
     /* =================================
        ΒΡΟΧΗ
+       ΗΛΙΟΣ/ΦΕΓΓΑΡΙ + ΣΥΝΝΕΦΟ
     ================================= */
 
     if(
@@ -2616,7 +2797,7 @@ function weatherIcon(
 
 
     /* =================================
-       ΛΙΓΑ ΣΥΝΝΕΦΑ — ΗΜΕΡΑ
+       ΛΙΓΑ ΣΥΝΝΕΦΑ — ΗΜΕΡΑ / ΝΥΧΤΑ
     ================================= */
 
     if(
@@ -2727,10 +2908,6 @@ function weatherIcon(
 
     }
 
-
-    /* =================================
-       FALLBACK
-    ================================= */
 
     return isDay
 
@@ -3091,7 +3268,8 @@ async function loadWeather(){
             "weather_code," +
             "wind_speed_10m," +
             "wind_direction_10m," +
-            "is_day" +
+            "is_day," +
+            "cloud_cover" +
 
             "&hourly=" +
 
@@ -3112,7 +3290,8 @@ async function loadWeather(){
             "temperature_2m_min," +
             "precipitation_probability_max," +
             "snowfall_sum," +
-            "wind_speed_10m_max" +
+            "wind_speed_10m_max," +
+            "cloud_cover_mean" +
 
             "&forecast_days=15" +
 
@@ -3233,6 +3412,12 @@ function renderCurrent(){
         Number(d.is_day) === 1;
 
 
+    const cloudCover =
+        Number(
+            d.cloud_cover || 0
+        );
+
+
     document
         .getElementById("current")
         .innerHTML = `
@@ -3275,7 +3460,8 @@ function renderCurrent(){
                     isDay,
                     0,
                     0,
-                    wind
+                    wind,
+                    cloudCover
                 )}
 
                 ${weatherText(code)}
@@ -3389,16 +3575,29 @@ function renderForecast(){
             );
 
 
-        let precipitationInfo =
+        const cloudCover =
+            Number(
+                d.cloud_cover_mean[i]
+                || 0
+            );
 
-            `💧 ${Math.round(rain)}%`;
+
+        /*
+           ΥΕΤΟΣ:
+
+           31% και πάνω = εμφανίζεται emoji
+           30% και κάτω = κανένα emoji
+        */
+
+        let precipitationInfo = "";
 
 
-        if(snow > 0){
+        if(rain >= 31){
 
             precipitationInfo =
-
-                `❄️ ${Math.round(rain)}%`;
+                snow > 0
+                    ? `❄️ ${Math.round(rain)}%`
+                    : `💧 ${Math.round(rain)}%`;
 
         }
 
@@ -3431,7 +3630,8 @@ function renderForecast(){
                     true,
                     rain,
                     snow,
-                    wind
+                    wind,
+                    cloudCover
                 )}
 
             </div>
@@ -3617,20 +3817,27 @@ function showHourly(dayIndex){
                 isDay,
                 rain,
                 snowfall,
-                wind
+                wind,
+                clouds
             );
 
 
-        let precipitationHTML =
+        /*
+           ΥΕΤΟΣ:
 
-            `💧 ${rain}%`;
+           31% και πάνω = εμφανίζεται emoji
+           30% και κάτω = κανένα emoji
+        */
+
+        let precipitationHTML = "";
 
 
-        if(snowfall > 0){
+        if(rain >= 31){
 
             precipitationHTML =
-
-                `❄️ ${rain}%`;
+                snowfall > 0
+                    ? `❄️ ${rain}%`
+                    : `💧 ${rain}%`;
 
         }
 
