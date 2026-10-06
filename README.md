@@ -836,6 +836,150 @@ body{
 
 
 /* =====================================
+   ΝΕΕΣ ΜΑΚΡΟΠΡΟΘΕΣΜΕΣ ΠΡΟΓΝΩΣΕΙΣ
+===================================== */
+
+.longrange-section{
+    display:none;
+    margin-top:28px;
+    background:
+        rgba(5,27,50,.72);
+    border-radius:20px;
+    padding:20px;
+}
+
+.longrange-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    border-bottom:
+        1px solid
+        rgba(255,255,255,.3);
+    padding-bottom:15px;
+    margin-bottom:15px;
+}
+
+.longrange-header h3{
+    margin:0;
+    font-size:21px;
+}
+
+.close-longrange{
+    background:
+        rgba(255,255,255,.15);
+    border:0;
+    color:white;
+    border-radius:10px;
+    padding:8px 13px;
+    cursor:pointer;
+}
+
+.longrange-note{
+    background:
+        rgba(65,96,130,.45);
+    border-radius:14px;
+    padding:14px;
+    color:#dce5ee;
+    font-size:13px;
+    line-height:1.55;
+    margin-bottom:15px;
+}
+
+.longrange-grid{
+    display:grid;
+    grid-template-columns:
+        repeat(2,1fr);
+    gap:10px;
+}
+
+.longrange-card{
+    background:
+        rgba(65,96,130,.62);
+    border-radius:14px;
+    padding:15px;
+    text-align:center;
+}
+
+.longrange-card-title{
+    font-weight:bold;
+    font-size:15px;
+    margin-bottom:10px;
+}
+
+.longrange-card-value{
+    font-size:21px;
+    font-weight:bold;
+    margin-bottom:7px;
+}
+
+.longrange-card-detail{
+    color:#d3dce5;
+    font-size:12px;
+    line-height:1.5;
+}
+
+.longrange-confidence{
+    margin-top:15px;
+    padding:12px;
+    border-radius:12px;
+    background:
+        rgba(255,255,255,.08);
+    color:#dce5ee;
+    font-size:12px;
+    line-height:1.5;
+}
+
+.longrange-list{
+    display:grid;
+    gap:9px;
+}
+
+.longrange-row{
+    background:
+        rgba(65,96,130,.62);
+    border-radius:13px;
+    padding:13px;
+}
+
+.longrange-row-title{
+    font-weight:bold;
+    margin-bottom:7px;
+}
+
+.longrange-row-data{
+    color:#dce5ee;
+    font-size:13px;
+    line-height:1.5;
+}
+
+.trend-warmer{
+    color:#FFD36A;
+    font-weight:bold;
+}
+
+.trend-colder{
+    color:#9DD9FF;
+    font-weight:bold;
+}
+
+.trend-wetter{
+    color:#7ED7FF;
+    font-weight:bold;
+}
+
+.trend-drier{
+    color:#FFD58A;
+    font-weight:bold;
+}
+
+.trend-normal{
+    color:#E1E7ED;
+    font-weight:bold;
+}
+
+
+/* =====================================
    MODEL INFO
 ===================================== */
 
@@ -928,6 +1072,11 @@ body{
         grid-template-columns:
             18px 58px;
         column-gap:8px;
+    }
+
+    .longrange-grid{
+        grid-template-columns:
+            1fr;
     }
 
 }
@@ -1059,6 +1208,22 @@ body{
 
             </button>
 
+            <button
+                class="menu-item"
+                onclick="openLongRangeForecast()">
+
+                🔭 Μακροπρόθεσμη πρόγνωση — έως 46 ημέρες
+
+            </button>
+
+            <button
+                class="menu-item"
+                onclick="openSeasonalForecast()">
+
+                🌦️ Εποχική τάση — έως 7 μήνες
+
+            </button>
+
         </div>
 
     </div>
@@ -1159,9 +1324,47 @@ body{
     </div>
 
 
+    <div
+        id="longRangeSection"
+        class="longrange-section">
+
+        <div class="longrange-header">
+
+            <h3 id="longRangeTitle">
+                🔭 Μακροπρόθεσμη πρόγνωση
+            </h3>
+
+            <button
+                class="close-longrange"
+                onclick="closeLongRange()">
+
+                ✕ Κλείσιμο
+
+            </button>
+
+        </div>
+
+        <div
+            id="longRange"
+            class="longrange">
+        </div>
+
+    </div>
+
+
     <div class="model-info">
 
         Open-Meteo — Best Match forecast
+
+        <br>
+
+        Μακροπρόθεσμη πρόγνωση:
+        ECMWF EC46 μέσω Open-Meteo — έως 46 ημέρες.
+
+        <br>
+
+        Εποχική τάση:
+        ECMWF SEAS5 μέσω Open-Meteo — έως 7 μήνες.
 
         <br>
 
@@ -1190,6 +1393,10 @@ const OPEN_METEO_FORECAST =
 
 const OPEN_METEO_GEOCODING =
     "https://geocoding-api.open-meteo.com/v1/search";
+
+
+const OPEN_METEO_SEASONAL =
+    "https://seasonal-api.open-meteo.com/v1/seasonal";
 
 
 let weatherData = null;
@@ -1228,6 +1435,8 @@ function refreshWeather(){
 
     closeHistory();
 
+    closeLongRange();
+
     if(locationData){
 
         loadWeather();
@@ -1263,6 +1472,8 @@ function openHistorySelector(){
     closeMenu();
 
     closeHourly();
+
+    closeLongRange();
 
     if(!locationData){
 
@@ -1935,6 +2146,945 @@ function closeHistory(){
 
 
 /* =====================================
+   LONG RANGE / SEASONAL
+===================================== */
+
+function openLongRangeForecast(){
+
+    closeMenu();
+
+    closeHistory();
+
+    closeHourly();
+
+
+    if(!locationData){
+
+        alert(
+            "Πρώτα αναζήτησε μία τοποθεσία."
+        );
+
+        return;
+
+    }
+
+
+    const section =
+        document.getElementById(
+            "longRangeSection"
+        );
+
+
+    section.style.display =
+        "block";
+
+
+    document
+        .getElementById("longRangeTitle")
+        .innerText =
+
+        "🔭 Μακροπρόθεσμη πρόγνωση — " +
+        locationData.name;
+
+
+    document
+        .getElementById("longRange")
+        .innerHTML = `
+
+        <div class="loading">
+
+            Φόρτωση ECMWF EC46
+            έως 46 ημέρες...
+
+        </div>
+
+    `;
+
+
+    section.scrollIntoView({
+
+        behavior:"smooth",
+
+        block:"start"
+
+    });
+
+
+    loadLongRangeForecast();
+
+}
+
+
+function openSeasonalForecast(){
+
+    closeMenu();
+
+    closeHistory();
+
+    closeHourly();
+
+
+    if(!locationData){
+
+        alert(
+            "Πρώτα αναζήτησε μία τοποθεσία."
+        );
+
+        return;
+
+    }
+
+
+    const section =
+        document.getElementById(
+            "longRangeSection"
+        );
+
+
+    section.style.display =
+        "block";
+
+
+    document
+        .getElementById("longRangeTitle")
+        .innerText =
+
+        "🌦️ Εποχική τάση — " +
+        locationData.name;
+
+
+    document
+        .getElementById("longRange")
+        .innerHTML = `
+
+        <div class="loading">
+
+            Φόρτωση ECMWF SEAS5
+            έως 7 μήνες...
+
+        </div>
+
+    `;
+
+
+    section.scrollIntoView({
+
+        behavior:"smooth",
+
+        block:"start"
+
+    });
+
+
+    loadSeasonalForecast();
+
+}
+
+
+function closeLongRange(){
+
+    const section =
+        document.getElementById(
+            "longRangeSection"
+        );
+
+
+    if(section){
+
+        section.style.display =
+            "none";
+
+    }
+
+}
+
+
+/* =====================================
+   LONG RANGE API
+   ECMWF EC46
+===================================== */
+
+async function loadLongRangeForecast(){
+
+    if(!locationData){
+
+        return;
+
+    }
+
+
+    const container =
+        document.getElementById(
+            "longRange"
+        );
+
+
+    try{
+
+        const url =
+
+            OPEN_METEO_SEASONAL +
+
+            "?latitude=" +
+            encodeURIComponent(
+                locationData.latitude
+            ) +
+
+            "&longitude=" +
+            encodeURIComponent(
+                locationData.longitude
+            ) +
+
+            "&daily=" +
+            "temperature_2m_mean," +
+            "temperature_2m_min," +
+            "temperature_2m_max," +
+            "precipitation_sum," +
+            "snowfall_sum" +
+
+            "&weekly=" +
+            "temperature_2m_mean," +
+            "temperature_2m_anomaly," +
+            "precipitation_mean," +
+            "precipitation_anomaly" +
+
+            "&models=ecmwf_ec46" +
+
+            "&forecast_days=46" +
+
+            "&temperature_unit=celsius" +
+
+            "&precipitation_unit=mm" +
+
+            "&timezone=auto";
+
+
+        const response =
+            await fetch(url);
+
+
+        if(!response.ok){
+
+            throw new Error(
+                "ECMWF EC46 request failed"
+            );
+
+        }
+
+
+        const data =
+            await response.json();
+
+
+        renderLongRangeForecast(
+            data
+        );
+
+
+    }catch(error){
+
+        console.error(error);
+
+
+        container.innerHTML = `
+
+            <div class="loading">
+
+                Δεν ήταν δυνατή η φόρτωση
+                της μακροπρόθεσμης πρόγνωσης.
+
+                <br><br>
+
+                ${error.message || ""}
+
+            </div>
+
+        `;
+
+    }
+
+}
+
+
+function renderLongRangeForecast(data){
+
+    const container =
+        document.getElementById(
+            "longRange"
+        );
+
+
+    const daily =
+        data.daily;
+
+
+    const weekly =
+        data.weekly;
+
+
+    if(
+        !daily ||
+        !daily.time ||
+        !daily.time.length
+    ){
+
+        throw new Error(
+            "Δεν υπάρχουν διαθέσιμα δεδομένα EC46."
+        );
+
+    }
+
+
+    let html = `
+
+        <div class="longrange-note">
+
+            <b>🔭 Τι δείχνει αυτή η πρόγνωση;</b>
+
+            <br><br>
+
+            Το ECMWF EC46 φτάνει έως
+            <b>46 ημέρες</b> μπροστά.
+            Σε αυτό το εύρος δεν πρέπει να
+            αντιμετωπίζονται οι τιμές σαν
+            ακριβής ημερήσια πρόγνωση.
+
+            <br><br>
+
+            Εδώ δίνεται κυρίως η
+            <b>τάση</b> της θερμοκρασίας και
+            του υετού ανά εβδομάδα.
+
+        </div>
+
+        <div class="longrange-grid">
+
+    `;
+
+
+    const count =
+        Math.min(
+            6,
+            weekly?.time?.length || 0
+        );
+
+
+    for(
+        let i = 0;
+        i < count;
+        i++
+    ){
+
+        const temp =
+            Number(
+                weekly.temperature_2m_mean?.[i]
+            );
+
+
+        const tempAnomaly =
+            Number(
+                weekly.temperature_2m_anomaly?.[i]
+            );
+
+
+        const precipitation =
+            Number(
+                weekly.precipitation_mean?.[i]
+            );
+
+
+        const precipitationAnomaly =
+            Number(
+                weekly.precipitation_anomaly?.[i]
+            );
+
+
+        const tempText =
+            formatTemperatureTrend(
+                tempAnomaly
+            );
+
+
+        const rainText =
+            formatPrecipitationTrend(
+                precipitationAnomaly
+            );
+
+
+        const weekStart =
+            formatLongRangeDate(
+                weekly.time[i]
+            );
+
+
+        html += `
+
+            <div class="longrange-card">
+
+                <div class="longrange-card-title">
+
+                    📅 Εβδομάδα
+                    ${weekStart}
+
+                </div>
+
+
+                <div class="longrange-card-value">
+
+                    ${Number.isFinite(temp)
+                        ? Math.round(temp) + "°C"
+                        : "—"}
+
+                </div>
+
+
+                <div class="longrange-card-detail">
+
+                    ${tempText}
+
+                    <br><br>
+
+                    Υετός:
+                    ${Number.isFinite(precipitation)
+                        ? precipitation.toFixed(1) + " mm"
+                        : "—"}
+
+                    <br>
+
+                    ${rainText}
+
+                </div>
+
+            </div>
+
+        `;
+
+    }
+
+
+    html += `
+
+        </div>
+
+        <div class="longrange-confidence">
+
+            <b>📊 Αξιοπιστία:</b>
+
+            Η πρόγνωση πέρα από τις
+            15–16 ημέρες είναι
+            <b>τάση και όχι ακριβής
+            ημερήσια πρόγνωση</b>.
+            Το ECMWF EC46 χρησιμοποιεί
+            ensemble πρόγνωση για να
+            αποτυπώνει την αβεβαιότητα.
+
+        </div>
+
+        <br>
+
+        <div class="longrange-note">
+
+            <b>📌 Πρώτες 46 ημέρες</b>
+
+            <br><br>
+
+            Η υπηρεσία χρησιμοποιεί το
+            ECMWF EC46 και παρέχει
+            sub-seasonal πρόγνωση.
+            Όσο αυξάνεται ο ορίζοντας,
+            τόσο περισσότερο πρέπει να
+            κοιτάμε τη γενική τάση και
+            όχι συγκεκριμένη ημέρα.
+
+        </div>
+
+    `;
+
+
+    container.innerHTML =
+        html;
+
+}
+
+
+function formatTemperatureTrend(anomaly){
+
+    if(!Number.isFinite(anomaly)){
+
+        return "Θερμοκρασιακή τάση: —";
+
+    }
+
+
+    if(anomaly >= 2){
+
+        return `
+            <span class="trend-warmer">
+                🔥 Πολύ θερμότερη τάση
+            </span>
+        `;
+
+    }
+
+
+    if(anomaly >= 0.7){
+
+        return `
+            <span class="trend-warmer">
+                ☀️ Θερμότερη τάση
+            </span>
+        `;
+
+    }
+
+
+    if(anomaly <= -2){
+
+        return `
+            <span class="trend-colder">
+                🥶 Πολύ ψυχρότερη τάση
+            </span>
+        `;
+
+    }
+
+
+    if(anomaly <= -0.7){
+
+        return `
+            <span class="trend-colder">
+                ❄️ Ψυχρότερη τάση
+            </span>
+        `;
+
+    }
+
+
+    return `
+        <span class="trend-normal">
+            🌡️ Κοντά στα φυσιολογικά
+        </span>
+    `;
+
+}
+
+
+function formatPrecipitationTrend(anomaly){
+
+    if(!Number.isFinite(anomaly)){
+
+        return "Τάση υετού: —";
+
+    }
+
+
+    if(anomaly >= 10){
+
+        return `
+            <span class="trend-wetter">
+                🌧️ Σαφώς πιο υγρή τάση
+            </span>
+        `;
+
+    }
+
+
+    if(anomaly >= 2){
+
+        return `
+            <span class="trend-wetter">
+                💧 Πιο υγρή τάση
+            </span>
+        `;
+
+    }
+
+
+    if(anomaly <= -10){
+
+        return `
+            <span class="trend-drier">
+                ☀️ Σαφώς πιο ξηρή τάση
+            </span>
+        `;
+
+    }
+
+
+    if(anomaly <= -2){
+
+        return `
+            <span class="trend-drier">
+                🌤️ Πιο ξηρή τάση
+            </span>
+        `;
+
+    }
+
+
+    return `
+        <span class="trend-normal">
+            ⚖️ Κοντά στα φυσιολογικά
+        </span>
+    `;
+
+}
+
+
+function formatLongRangeDate(dateString){
+
+    if(!dateString){
+
+        return "—";
+
+    }
+
+
+    const parts =
+        dateString.split("-");
+
+
+    return (
+        Number(parts[2]) +
+        "/" +
+        Number(parts[1])
+    );
+
+}
+
+
+/* =====================================
+   SEASONAL API
+   ECMWF SEAS5
+===================================== */
+
+async function loadSeasonalForecast(){
+
+    if(!locationData){
+
+        return;
+
+    }
+
+
+    const container =
+        document.getElementById(
+            "longRange"
+        );
+
+
+    try{
+
+        const url =
+
+            OPEN_METEO_SEASONAL +
+
+            "?latitude=" +
+            encodeURIComponent(
+                locationData.latitude
+            ) +
+
+            "&longitude=" +
+            encodeURIComponent(
+                locationData.longitude
+            ) +
+
+            "&monthly=" +
+            "temperature_2m_mean," +
+            "temperature_2m_anomaly," +
+            "precipitation_mean," +
+            "precipitation_anomaly" +
+
+            "&models=ecmwf_seas5" +
+
+            "&forecast_days=214" +
+
+            "&temperature_unit=celsius" +
+
+            "&precipitation_unit=mm" +
+
+            "&timezone=auto";
+
+
+        const response =
+            await fetch(url);
+
+
+        if(!response.ok){
+
+            throw new Error(
+                "ECMWF SEAS5 request failed"
+            );
+
+        }
+
+
+        const data =
+            await response.json();
+
+
+        renderSeasonalForecast(
+            data
+        );
+
+
+    }catch(error){
+
+        console.error(error);
+
+
+        container.innerHTML = `
+
+            <div class="loading">
+
+                Δεν ήταν δυνατή η φόρτωση
+                της εποχικής τάσης.
+
+                <br><br>
+
+                ${error.message || ""}
+
+            </div>
+
+        `;
+
+    }
+
+}
+
+
+function renderSeasonalForecast(data){
+
+    const container =
+        document.getElementById(
+            "longRange"
+        );
+
+
+    const monthly =
+        data.monthly;
+
+
+    if(
+        !monthly ||
+        !monthly.time ||
+        !monthly.time.length
+    ){
+
+        throw new Error(
+            "Δεν υπάρχουν διαθέσιμα δεδομένα SEAS5."
+        );
+
+    }
+
+
+    let html = `
+
+        <div class="longrange-note">
+
+            <b>🌦️ Τι δείχνει η εποχική τάση;</b>
+
+            <br><br>
+
+            Το ECMWF SEAS5 φτάνει έως
+            <b>7 μήνες</b> μπροστά.
+
+            <br><br>
+
+            Δεν είναι πρόγνωση συγκεκριμένων
+            ημερών. Δείχνει αν κάθε μήνας
+            έχει τάση να είναι
+            <b>θερμότερος/ψυχρότερος</b>
+            ή
+            <b>υγρότερος/ξηρότερος</b>
+            από το φυσιολογικό.
+
+        </div>
+
+        <div class="longrange-list">
+
+    `;
+
+
+    const monthNames = [
+
+        "Ιανουάριος",
+        "Φεβρουάριος",
+        "Μάρτιος",
+        "Απρίλιος",
+        "Μάιος",
+        "Ιούνιος",
+        "Ιούλιος",
+        "Αύγουστος",
+        "Σεπτέμβριος",
+        "Οκτώβριος",
+        "Νοέμβριος",
+        "Δεκέμβριος"
+
+    ];
+
+
+    const count =
+        Math.min(
+            7,
+            monthly.time.length
+        );
+
+
+    for(
+        let i = 0;
+        i < count;
+        i++
+    ){
+
+        const date =
+            monthly.time[i];
+
+
+        const parts =
+            date.split("-");
+
+
+        const month =
+            Number(parts[1]);
+
+
+        const year =
+            Number(parts[0]);
+
+
+        const temp =
+            Number(
+                monthly.temperature_2m_mean?.[i]
+            );
+
+
+        const tempAnomaly =
+            Number(
+                monthly.temperature_2m_anomaly?.[i]
+            );
+
+
+        const precipitation =
+            Number(
+                monthly.precipitation_mean?.[i]
+            );
+
+
+        const precipitationAnomaly =
+            Number(
+                monthly.precipitation_anomaly?.[i]
+            );
+
+
+        html += `
+
+            <div class="longrange-row">
+
+                <div class="longrange-row-title">
+
+                    📅
+                    ${monthNames[month - 1] || month}
+                    ${year}
+
+                </div>
+
+
+                <div class="longrange-row-data">
+
+                    🌡️ Μέση θερμοκρασία:
+                    <b>
+                        ${
+                            Number.isFinite(temp)
+                                ? Math.round(temp) + "°C"
+                                : "—"
+                        }
+                    </b>
+
+                    <br>
+
+                    ${formatTemperatureTrend(
+                        tempAnomaly
+                    )}
+
+                    <br><br>
+
+                    💧 Μέσος υετός:
+                    <b>
+                        ${
+                            Number.isFinite(precipitation)
+                                ? precipitation.toFixed(1) + " mm"
+                                : "—"
+                        }
+                    </b>
+
+                    <br>
+
+                    ${formatPrecipitationTrend(
+                        precipitationAnomaly
+                    )}
+
+                </div>
+
+            </div>
+
+        `;
+
+    }
+
+
+    html += `
+
+        </div>
+
+        <div class="longrange-confidence">
+
+            <b>📊 Αξιοπιστία:</b>
+
+            Η εποχική πρόγνωση είναι
+            probabilistic/ensemble καθοδήγηση.
+            Είναι κατάλληλη για τη γενική τάση
+            των επόμενων μηνών και όχι για
+            συγκεκριμένη ημέρα ή συγκεκριμένο
+            επεισόδιο βροχής/χιονιού.
+
+        </div>
+
+        <br>
+
+        <div class="longrange-note">
+
+            <b>🌍 ECMWF SEAS5</b>
+
+            <br><br>
+
+            Η τάση υπολογίζεται σε σχέση με
+            τη μακροχρόνια κλιματολογική
+            συμπεριφορά του μοντέλου.
+
+            <br><br>
+
+            <b>
+                Δεν εμφανίζουμε ψεύτικη
+                «ακριβή» πρόγνωση 7 μηνών.
+            </b>
+
+            Η εφαρμογή εμφανίζει μόνο
+            την τάση που υποστηρίζεται
+            από το εποχικό μοντέλο.
+
+        </div>
+
+    `;
+
+
+    container.innerHTML =
+        html;
+
+}
+
+
+/* =====================================
    OUTSIDE MENU
 ===================================== */
 
@@ -2107,11 +3257,9 @@ function svgWrap(content){
 
 /* =====================================
    WEATHER ICON
-   Κάθε κατάσταση = ΕΝΑ ενιαίο εικονίδιο
 
-   ΣΗΜΑΝΤΙΚΟ:
-   Εικονίδιο υετού εμφανίζεται ΜΟΝΟ
-   όταν η πιθανότητα είναι >= 31%.
+   ΑΥΣΤΗΡΟ ΟΡΙΟ:
+   Εικονίδιο υετού ΜΟΝΟ >=31%.
 ===================================== */
 
 function weatherIcon(
@@ -2138,11 +3286,6 @@ function weatherIcon(
     cloudCover =
         Number(cloudCover || 0);
 
-
-    /*
-       Η εμφάνιση εικονιδίου υετού
-       επιτρέπεται αυστηρά από 31% και πάνω.
-    */
 
     const precipitationChance =
         Math.round(
@@ -2186,13 +3329,6 @@ function weatherIcon(
     ];
 
 
-    /*
-       ΚΡΙΣΙΜΟ:
-       Αν η πιθανότητα είναι <=30%,
-       ΟΛΑ τα precipitation weather codes
-       θεωρούνται μη-υετικά για το εικονίδιο.
-    */
-
     const hasPrecipitation =
 
         precipitationAllowed && (
@@ -2217,13 +3353,6 @@ function weatherIcon(
     const strongWind =
         windSpeed >= 32;
 
-
-    /*
-       =================================
-       ΙΣΧΥΡΟΣ ΑΝΕΜΟΣ + ΥΕΤΟΣ
-       >=32 km/h
-       =================================
-    */
 
     if(
         strongWind &&
@@ -2499,13 +3628,6 @@ function weatherIcon(
     }
 
 
-    /*
-       =================================
-       ΔΥΝΑΤΟΣ ΑΝΕΜΟΣ ΧΩΡΙΣ ΥΕΤΟ
-       >=32 km/h
-       =================================
-    */
-
     if(
         strongWind &&
         !hasPrecipitation &&
@@ -2594,14 +3716,6 @@ function weatherIcon(
 
     }
 
-
-    /*
-       Από εδώ και κάτω τα precipitation
-       branches εκτελούνται ΜΟΝΟ όταν
-       precipitationAllowed === true,
-       επειδή hasPrecipitation είναι false
-       όταν η πιθανότητα είναι <=30%.
-    */
 
     if(
         stormCodes.includes(code) &&
@@ -3038,12 +4152,6 @@ function weatherIcon(
 
         }
 
-        /*
-           <=30%:
-           Δεν εμφανίζουμε χιονόπτωση.
-           Χρησιμοποιούμε μη-υετικό εικονίδιο
-           ανάλογα με την ημέρα/νύχτα.
-        */
 
         if(isDay){
 
@@ -3604,6 +4712,8 @@ async function searchCity(){
 
     closeHourly();
 
+    closeLongRange();
+
 
     document
         .getElementById("current")
@@ -4051,7 +5161,6 @@ function renderCurrent(){
 
 /* =====================================
    ΗΜΕΡΗΣΙΟΣ ΚΥΡΙΑΡΧΟΣ ΚΑΙΡΟΣ
-   ΒΑΣΙΖΕΤΑΙ ΜΟΝΟ ΣΤΙΣ ΩΡΕΣ ΗΛΙΟΦΑΝΕΙΑΣ
 ===================================== */
 
 function getDailyDaylightWeatherCode(dayIndex){
@@ -4084,12 +5193,6 @@ function getDailyDaylightWeatherCode(dayIndex){
         }
 
 
-        /*
-           Χρησιμοποιούμε το is_day του Open-Meteo
-           ώστε οι νυχτερινές ώρες να μην επηρεάζουν
-           καθόλου το ημερήσιο εικονίδιο.
-        */
-
         const isDay =
             Number(hourly.is_day?.[i]) === 1;
 
@@ -4102,12 +5205,6 @@ function getDailyDaylightWeatherCode(dayIndex){
 
     }
 
-
-    /*
-       Εφεδρικός τρόπος αν για οποιονδήποτε λόγο
-       δεν υπάρχει is_day:
-       κρατάμε περίπου 06:00–18:00.
-    */
 
     if(!daytimeRows.length){
 
@@ -4221,11 +5318,6 @@ function getDailyDaylightWeatherCode(dayIndex){
     }
 
 
-    /*
-       Μετράμε πόσες ώρες της ημέρας κυριαρχεί
-       κάθε βασική κατάσταση.
-    */
-
     const categoryCounts = {
 
         storm:0,
@@ -4257,11 +5349,6 @@ function getDailyDaylightWeatherCode(dayIndex){
 
     });
 
-
-    /*
-       Βρίσκουμε την κατάσταση που εμφανίζεται
-       τις περισσότερες ώρες ηλιοφάνειας.
-    */
 
     let dominantCategory =
         "clear";
@@ -4303,12 +5390,6 @@ function getDailyDaylightWeatherCode(dayIndex){
     });
 
 
-    /*
-       Η πιθανότητα υετού της ημέρας παραμένει
-       το αυστηρό φίλτρο:
-       <=30% δεν επιτρέπεται precipitation icon.
-    */
-
     const dailyRain =
         Math.round(
             Number(
@@ -4321,15 +5402,6 @@ function getDailyDaylightWeatherCode(dayIndex){
     const precipitationAllowed =
         dailyRain >= 31;
 
-
-    /*
-       Αν ο κυρίαρχος daytime καιρός είναι υετός
-       αλλά η πιθανότητα είναι <=30%, ΔΕΝ δείχνουμε
-       βροχή/χιόνι/χιονόνερο/καταιγίδα.
-
-       Αντί γι' αυτό αποφασίζουμε από τη μέση
-       ημερήσια νέφωση των daylight ωρών.
-    */
 
     if(
         [
@@ -4389,12 +5461,6 @@ function getDailyDaylightWeatherCode(dayIndex){
     }
 
 
-    /*
-       Αν υπάρχει πραγματικός υετός >=31%,
-       επιστρέφουμε έναν αντιπροσωπευτικό κωδικό
-       από τις daylight ώρες.
-    */
-
     if(precipitationAllowed){
 
         const matchingRows =
@@ -4410,11 +5476,6 @@ function getDailyDaylightWeatherCode(dayIndex){
 
 
         if(matchingRows.length){
-
-            /*
-               Παίρνουμε τον πιο συχνό ακριβή WMO code
-               μέσα στην κυρίαρχη κατηγορία.
-            */
 
             const codeCounts = {};
 
@@ -4468,11 +5529,6 @@ function getDailyDaylightWeatherCode(dayIndex){
 
     }
 
-
-    /*
-       Για μη-υετικές συνθήκες παίρνουμε τον
-       συχνότερο ακριβή daylight κωδικό.
-    */
 
     const nonPrecipRows =
         daytimeRows.filter(i => {
@@ -4606,34 +5662,17 @@ function renderForecast(){
             );
 
 
-        /*
-           =================================
-           ΗΜΕΡΗΣΙΟ ΕΙΚΟΝΙΔΙΟ:
-           ΒΑΣΙΖΕΤΑΙ ΣΤΙΣ DAYLIGHT ΩΡΕΣ
-           
-           Οι ώρες της νύχτας δεν επηρεάζουν
-           πλέον το εικονίδιο της ημέρας.
-        =================================
-        */
-
         const dailyCode =
             getDailyDaylightWeatherCode(i);
 
 
-        /*
-           =================================
-           ΑΥΣΤΗΡΟ ΟΡΙΟ ΥΕΤΟΥ
-
-           31% ΚΑΙ ΠΑΝΩ:
-           εμφανίζεται emoji υετού.
-
-           30% ΚΑΙ ΚΑΤΩ:
-           ΚΑΝΕΝΑ emoji υετού.
-        =================================
-        */
-
         let precipitationInfo = "";
 
+
+        /*
+           ΑΥΣΤΗΡΑ:
+           ΜΟΝΟ >=31% εμφανίζεται emoji υετού.
+        */
 
         if(rain >= 31){
 
@@ -4900,20 +5939,13 @@ function showHourly(dayIndex){
             );
 
 
-        /*
-           =================================
-           ΑΥΣΤΗΡΟ ΟΡΙΟ ΥΕΤΟΥ
-           
-           31% ΚΑΙ ΠΑΝΩ:
-           εμφανίζεται emoji υετού.
-
-           30% ΚΑΙ ΚΑΤΩ:
-           ΚΑΝΕΝΑ emoji υετού.
-        =================================
-        */
-
         let precipitationHTML = "";
 
+
+        /*
+           ΑΥΣΤΗΡΑ:
+           ΜΟΝΟ >=31% εμφανίζεται emoji υετού.
+        */
 
         if(rain >= 31){
 
