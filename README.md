@@ -1,4 +1,4 @@
-<!DOCTYPE >
+<!DOCTYPE html>
 <html lang="el">
 
 <head>
@@ -170,8 +170,15 @@ body{
 }
 
 .current h2{
-    margin:0 0 20px;
+    margin:0 0 5px;
     font-size:26px;
+}
+
+.country-name{
+    font-size:15px;
+    color:#b3c2d1;
+    margin-bottom:20px;
+    font-weight:bold;
 }
 
 .temperature{
@@ -235,7 +242,7 @@ body{
 .forecast{
     display:grid;
     grid-template-columns:
-        repeat(6,1fr);
+        repeat(5,1fr);
     gap:12px;
 }
 
@@ -2245,7 +2252,7 @@ async function loadLongRangeData(){
             "?latitude=" + encodeURIComponent(locationData.latitude) +
             "&longitude=" + encodeURIComponent(locationData.longitude) +
             "&daily=temperature_2m_max,temperature_2m_min,precipitation_sum" +
-            "&models=ecmwf_ensemble" +
+            "&models=ecmwf_iiss" +
             "&timezone=auto";
 
         const response = await fetch(url);
@@ -2304,6 +2311,8 @@ async function loadSeasonalData(){
 
         const response = await fetch(url);
         if(!response.ok) throw new Error("Seasonal request failed");
+
+        const data = await response.json();
 
         container.innerHTML = `
             <div class="longrange-note">
@@ -2373,7 +2382,7 @@ async function loadWeather(){
             "?latitude=" + locationData.latitude +
             "&longitude=" + locationData.longitude +
             "&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m" +
-            "&hourly=precipitation_probability" +
+            "&hourly=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,precipitation_probability" +
             "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max" +
             "&timezone=auto";
 
@@ -2395,6 +2404,7 @@ function renderCurrentWeather(){
     document.getElementById("current").innerHTML = `
         <div class="current">
             <h2>${locationData.name}</h2>
+            <div class="country-name">${locationData.country || ''}</div>
             <div class="temperature">${Math.round(c.temperature_2m)}°C</div>
             <div class="condition">Αίσθηση: ${Math.round(c.apparent_temperature)}°C</div>
             <div class="current-grid">
@@ -2435,13 +2445,13 @@ function renderForecast(){
             }
         }
 
-        // Εναλλακτικά αν δεν υπάρχουν ωριαία, κοιτάμε το ημερήσιο max
         const dailyMaxProb = d.precipitation_probability_max?.[i] || 0;
         const showRainEmoji = hasRainAnyHour || (dailyMaxProb >= 31);
 
         html += `
             <div class="day" onclick="openHourlyForDay(${i})">
                 <div class="day-name">${dateStr}</div>
+                <div class="date">${dateStr}</div>
                 <div class="icon">☀️${showRainEmoji ? ' 🌧️' : ''}</div>
                 <div class="max">${Math.round(d.temperature_2m_max[i])}°</div>
                 <div class="min">${Math.round(d.temperature_2m_min[i])}°</div>
@@ -2459,18 +2469,43 @@ function openHourlyForDay(index){
     document.getElementById("hourlyTitle").innerText = "Ωριαία Πρόγνωση — " + weatherData.daily.time[index];
     
     let html = "";
-    for(let h = 0; h < 24; h += 3){
-        html += `
-            <div class="hour">
-                <div class="hour-time">${String(h).padStart(2, '0')}:00</div>
-                <div class="hour-icon">⛅</div>
-                <div class="hour-data">Θερμοκρασία: --°C</div>
-                <div class="hour-data">Άνεμος: -- km/h</div>
-                <div class="hour-data">Υγρασία: --%</div>
-                <div class="hour-data">Βροχή: --%</div>
-            </div>
-        `;
+    const startHour = index * 24;
+    const endHour = startHour + 24;
+
+    if(weatherData && weatherData.hourly && weatherData.hourly.time){
+        for(let h = startHour; h < endHour; h++){
+            const timeStr = weatherData.hourly.time[h].split("T")[1] || (String(h % 24).padStart(2, '0') + ":00");
+            const temp = Math.round(weatherData.hourly.temperature_2m[h]);
+            const wind = weatherData.hourly.wind_speed_10m[h];
+            const hum = weatherData.hourly.relative_humidity_2m[h];
+            const rainProb = weatherData.hourly.precipitation_probability[h] || 0;
+
+            html += `
+                <div class="hour">
+                    <div class="hour-time">${timeStr}</div>
+                    <div class="hour-icon">⛅</div>
+                    <div class="hour-data">Θερμοκρασία: ${temp}°C</div>
+                    <div class="hour-data">Άνεμος: ${wind} km/h</div>
+                    <div class="hour-data">Υγρασία: ${hum}%</div>
+                    <div class="hour-data">Βροχή: ${rainProb}%</div>
+                </div>
+            `;
+        }
+    } else {
+        for(let h = 0; h < 24; h += 3){
+            html += `
+                <div class="hour">
+                    <div class="hour-time">${String(h).padStart(2, '0')}:00</div>
+                    <div class="hour-icon">⛅</div>
+                    <div class="hour-data">Θερμοκρασία: --°C</div>
+                    <div class="hour-data">Άνεμος: -- km/h</div>
+                    <div class="hour-data">Υγρασία: --%</div>
+                    <div class="hour-data">Βροχή: --%</div>
+                </div>
+            `;
+        }
     }
+
     document.getElementById("hourly").innerHTML = html;
     hourlySection.scrollIntoView({ behavior: "smooth", block: "start" });
 }
