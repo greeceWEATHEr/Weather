@@ -54,7 +54,7 @@ body{margin:0;font-family:Arial,Helvetica,sans-serif;color:#fff;background:linea
     <div class="history-header"><h3 id="extraTitle">Πρόγνωση</h3><button class="close-history" onclick="closeExtra()">✕ Κλείσιμο</button></div>
     <div id="extraContent" class="extra-content"></div>
   </div>
-  <div class="model-info">AegeanBlend WX-1 — πειραματικό συνδυαστικό μοντέλο πρόγνωσης<br>Συνδυασμός διαθέσιμων δεδομένων ECMWF IFS (40%), NOAA GFS (25%), DWD ICON (20%) και Météo-France (15%), με αναπροσαρμογή βαρών όταν κάποιο μοντέλο δεν είναι διαθέσιμο.<br>Ιστορικό: ECMWF ERA5 Reanalysis μέσω Open-Meteo — διαθέσιμο από το 1940.<br>Μακροπρόθεσμη πρόγνωση: ECMWF EC46, όπου διατίθεται από το API.<br>Τα δεδομένα ανανεώνονται αυτόματα σύμφωνα με τους κύκλους έκδοσης του παρόχου.</div>
+  <div class="model-info"></div>
 </div>
 <script>
 const OPEN_METEO_FORECAST="https://api.open-meteo.com/v1/forecast";
